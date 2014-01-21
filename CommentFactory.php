@@ -14,6 +14,6 @@ class CommentFactory
 
     public function create($description, $tags)
     {
-        new Comment($description, $parsedtags);
+        return new Comment($description, $tags);
     }
 }

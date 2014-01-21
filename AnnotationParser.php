@@ -35,7 +35,7 @@ class AnnotationParser
 
     public function parse($comment)
     {
-        $result  = array();
+        $result  = array('tags' => array());
         $comment = $this->stripCommentDecoration($comment);
 
         // Extract the description part of the comment block

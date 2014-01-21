@@ -15,18 +15,21 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
     {
         return array(
             array('/** */', array(
-                    'description' => ''
+                    'description' => '',
+                    'tags'        => array()
                 )),
             array('/** no annotations */',
                 array(
-                    'description' => 'no annotations'
+                    'description' => 'no annotations',
+                    'tags'        => array()
                 )
             ),
             array('/**
                     * multiline
                     */',
                 array(
-                    'description' => 'multiline'
+                    'description' => 'multiline',
+                    'tags'        => array()
                 )
             ),
             array('/** @something */',
