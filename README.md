@@ -26,11 +26,11 @@ Comment provides several useful methods to work with the annotation tags.
 
 Comment syntax
 --------
-A documentation comment is directly (e.g. no blank lines between them) above the documented class, function, method or property. The comment begins with `/**` and end with `*/`. Every line should optionally begin with an asterisk (`*`).
+A documentation comment is directly (e.g. no blank lines between them) above the documented class, function, method or property. The comment begins with `/**` and end with `*/`. Every line should optionally begin with an asterisk (*).
 
 The comment begins with the description part that is terminated by a `@tag`.
 
-### Exampless:
+### Examples:
 ```
 /** This is a one-liner */
 ```
@@ -44,12 +44,12 @@ The comment begins with the description part that is terminated by a `@tag`.
 
 Annotation syntax
 --------
-Annotation tags are preceded with an at-sign (`@`) and they start on a new line. The tag name can consist of letters, numbers, dash (`-`) and underscode (`_`) signs but must begin with at least one letter.
+Annotation tags are preceded with an at-sign (@) and they start on a new line. The tag name can consist of letters, numbers, dash (-) and underscode (_) signs but must begin with at least one letter. The following are example of invalid tag names: `@1tag`, `@-tag`.
 
 There are three types of annotations:
- * Simple annotations that do not have values (e.g. `@tag`)
- * Annotations that are followed by their values (e.g. `@tag that has a value`).
- * Annotations that are followed by parentheses (e.g. `@tag(value, 'other value')`.
+ * Simple annotations that do not have values (`@tag`)
+ * Annotations that are followed by their values (`@tag that has a value`).
+ * Annotations that are followed by parentheses (`@tag(value, 'other value')`.
 The values are strings delimited by commas. In the secound case only one value is allowed, commas and the following text are discarded. The third case allowes multiple values that are separated by commas. To allow commas and newlines in the value, simply enclose it in ' or ".
 
 ### Examples:
