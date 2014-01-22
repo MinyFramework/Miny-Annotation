@@ -101,6 +101,18 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
                     )
                 )
             ),
+            array('/**
+                       @tag
+                       @tag bar
+                       @tag(foo, baz)
+                       @tag value */',
+                array(
+                    'description' => '',
+                    'tags'        => array(
+                        'tag' => array('bar', 'foo', 'baz', 'value')
+                    )
+                )
+            ),
         );
     }
 

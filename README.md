@@ -56,5 +56,7 @@ There are three types of annotations:
 
 The values are strings delimited by commas. In the secound case only one value is allowed, commas and the following text are discarded. The third case allowes multiple values that are separated by commas. To allow commas and newlines in the value, simply enclose it in ' or ".
 
+If multiple annotations are present with the same name, their values will be aggregated in an array. In this case, annotations without values will be ignored.
+
 ### Examples:
 `@tag`, `@tag value`, `@tag "some value"`, `@tag()`, `@tag(simple value)`, `@tag(multiple, values)`

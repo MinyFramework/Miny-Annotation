@@ -76,7 +76,18 @@ class AnnotationParser
                 $value = trim($value, '"\'');
             }
 
-            $result['tags'][$tag_name] = $value;
+            if(isset($result['tags'][$tag_name])) {
+                if(!is_array($result['tags'][$tag_name])) {
+                    $result['tags'][$tag_name] = array($result['tags'][$tag_name]);
+                }
+                if(is_array($value)) {
+                    $result['tags'][$tag_name] = array_merge($result['tags'][$tag_name], $value);
+                } else {
+                    $result['tags'][$tag_name][] = $value;
+                }
+            } else {
+                $result['tags'][$tag_name] = $value;
+            }
         }
 
         return $result;
