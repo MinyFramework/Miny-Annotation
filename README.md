@@ -16,6 +16,7 @@ $annotation = new \Modules\Annotation\Annotation($parser, $factory);
 Annotation has four public methods: `readClass($class)`, `readFunction($function)`, `readMethod($class, $method)` and `readProperty($class, $property)`. These functions work as one would expect, e.g. `readMethod` reads and parses the documentation comment of a class or object method.
 ### The Comment object
 The resulting data structure of a `read*` method is a Comment instance. Comments hold the description and the parsed tags of the documentation comment.
+
 Comment provides several useful methods to work with the annotation tags.
  * `has($tag)` checks if a tag is present
  * `get($tag)` retrieves the tag value
@@ -23,6 +24,8 @@ Comment provides several useful methods to work with the annotation tags.
  * `contains($tag, $value)` checks if `$value` is present in the argument list of the annotation
  * `containsAll($tag, $value_array)` checks if each member of `$value_array` is present
  * `getDescription()` returns the description part of the comment
+
+If a tag is not found, an `OutOfBoundsException` is thrown.
 
 Comment syntax
 --------
@@ -44,12 +47,13 @@ The comment begins with the description part that is terminated by a `@tag`.
 
 Annotation syntax
 --------
-Annotation tags are preceded with an at-sign (@) and they start on a new line. The tag name can consist of letters, numbers, dash (-) and underscode (_) signs but must begin with at least one letter. The following are example of invalid tag names: `@1tag`, `@-tag`.
+Annotation tags are preceded with an at-sign (@) and they start on a new line. The tag name can consist of letters, numbers, dash (-) and underscode (_) signs but must begin with at least one letter. The following are examples of invalid tag names: `@1tag`, `@-tag`.
 
 There are three types of annotations:
  * Simple annotations that do not have values (`@tag`)
  * Annotations that are followed by their values (`@tag that has a value`).
  * Annotations that are followed by parentheses (`@tag(value, 'other value')`.
+
 The values are strings delimited by commas. In the secound case only one value is allowed, commas and the following text are discarded. The third case allowes multiple values that are separated by commas. To allow commas and newlines in the value, simply enclose it in ' or ".
 
 ### Examples:
