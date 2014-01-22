@@ -33,6 +33,12 @@ class AnnotationParser
         return $result;
     }
 
+    /**
+     * Parses a documentation comment.
+     *
+     * @param string $comment
+     * @return array
+     */
     public function parse($comment)
     {
         $result  = array('tags' => array());

@@ -12,7 +12,15 @@ namespace Modules\Annotation;
 class CommentFactory
 {
 
-    public function create($description, $tags)
+    /**
+     * Creates a new Comment instance.
+     *
+     * @param string $description
+     * @param array $tags
+     *
+     * @return Comment
+     */
+    public function create($description, array $tags)
     {
         return new Comment($description, $tags);
     }
