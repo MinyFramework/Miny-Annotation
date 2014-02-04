@@ -16,11 +16,6 @@ class Module extends \Miny\Modules\Module
 
     public function init(BaseApplication $app)
     {
-        $factory = $app->getFactory();
 
-        $factory->add('comment_factory', __NAMESPACE__ . '\CommentFactory');
-        $factory->add('annotation_parser', __NAMESPACE__ . '\AnnotationParser');
-        $factory->add('annotation', __NAMESPACE__ . '\Annotation')
-                ->setArguments('&annotation_parser', '&comment_factory');
     }
 }
