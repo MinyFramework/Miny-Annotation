@@ -59,7 +59,7 @@ class AnnotationParser
         }
         $result['tags'] = array();
 
-        $parts_pattern = '/(?<=^)\s*                                            # line start
+        $parts_pattern = '/\s*                                            # line start
                  @(' . self::$tag . ')[ \t]*                                    # tag name
                  (
                     (?:\((?:' . self::$value . '(?:,' . self::$value . ')*)?\)) # value(s) in parentheses

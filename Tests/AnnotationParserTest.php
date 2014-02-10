@@ -14,25 +14,31 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
     public function annotationProvider()
     {
         return array(
-            array('/** */', array(
+            array(
+                '/** */',
+                array(
                     'description' => '',
                     'tags'        => array()
-                )),
-            array('/** no annotations */',
+                )
+            ),
+            array(
+                '/** no annotations */',
                 array(
                     'description' => 'no annotations',
                     'tags'        => array()
                 )
             ),
-            array('/**
-                    * multiline
-                    */',
+            array(
+                '/**
+                                    * multiline
+                                    */',
                 array(
                     'description' => 'multiline',
                     'tags'        => array()
                 )
             ),
-            array('/** @something */',
+            array(
+                '/** @something */',
                 array(
                     'description' => '',
                     'tags'        => array(
@@ -40,7 +46,8 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
                     )
                 )
             ),
-            array('/** @something weird */',
+            array(
+                '/** @something weird */',
                 array(
                     'description' => '',
                     'tags'        => array(
@@ -48,8 +55,9 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
                     )
                 )
             ),
-            array('/** description
-                     * @something weird */',
+            array(
+                '/** description
+                                     * @something weird */',
                 array(
                     'description' => 'description',
                     'tags'        => array(
@@ -57,7 +65,8 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
                     )
                 )
             ),
-            array('/** @something() */',
+            array(
+                '/** @something() */',
                 array(
                     'description' => '',
                     'tags'        => array(
@@ -65,7 +74,8 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
                     )
                 )
             ),
-            array('/** @something(\'value\') */',
+            array(
+                '/** @something(\'value\') */',
                 array(
                     'description' => '',
                     'tags'        => array(
@@ -73,7 +83,8 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
                     )
                 )
             ),
-            array('/** @something(with, "values") */',
+            array(
+                '/** @something(with, "values") */',
                 array(
                     'description' => '',
                     'tags'        => array(
@@ -81,7 +92,8 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
                     )
                 )
             ),
-            array('/** @something(invalid") */',
+            array(
+                '/** @something(invalid") */',
                 array(
                     'description' => '',
                     'tags'        => array(
@@ -89,9 +101,10 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
                     )
                 )
             ),
-            array('/** @multiple
-                       @and_more(asd)
-                       @annotations("param1", "param2") */',
+            array(
+                '/** @multiple
+                                       @and_more(asd)
+                                       @annotations("param1", "param2") */',
                 array(
                     'description' => '',
                     'tags'        => array(
@@ -101,15 +114,14 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
                     )
                 )
             ),
-            array('/**
-                       @tag
-                       @tag bar
-                       @tag(foo, baz)
-                       @tag value */',
+            array(
+                '/** @multiple(tags) @in the @same line */',
                 array(
                     'description' => '',
                     'tags'        => array(
-                        'tag' => array('bar', 'foo', 'baz', 'value')
+                        'multiple' => array('tags'),
+                        'in'       => 'the',
+                        'same'     => 'line',
                     )
                 )
             ),
