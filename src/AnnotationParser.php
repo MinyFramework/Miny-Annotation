@@ -50,7 +50,11 @@ class AnnotationParser
         $description           = trim($parts[0]);
         $result['description'] = $description;
 
-        if (!isset($parts[1]) || empty(trim($parts[1]))) {
+        if (!isset($parts[1])) {
+            return $result;
+        }
+        $trimmed = trim($parts[1]);
+        if (empty($trimmed)) {
             return $result;
         }
         $result['tags'] = array();
