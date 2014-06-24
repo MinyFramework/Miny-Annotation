@@ -2,6 +2,8 @@
 
 namespace Modules\Annotation;
 
+use Modules\Annotation\Exceptions\SyntaxException;
+
 class AnnotationParserTest extends \PHPUnit_Framework_TestCase
 {
     protected $object;
@@ -30,8 +32,8 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
             ),
             array(
                 '/**
-                                    * multiline
-                                    */',
+                  * multiline
+                  */',
                 array(
                     'description' => 'multiline',
                     'tags'        => array()
@@ -57,7 +59,7 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
             ),
             array(
                 '/** description
-                                     * @something weird */',
+                   * @something weird */',
                 array(
                     'description' => 'description',
                     'tags'        => array(
@@ -93,18 +95,9 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
                 )
             ),
             array(
-                '/** @something(invalid") */',
-                array(
-                    'description' => '',
-                    'tags'        => array(
-                        'something' => null
-                    )
-                )
-            ),
-            array(
                 '/** @multiple
-                                       @and_more(asd)
-                                       @annotations("param1", "param2") */',
+                     @and_more(asd)
+                     @annotations("param1", "param2") */',
                 array(
                     'description' => '',
                     'tags'        => array(
@@ -125,6 +118,18 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
                     )
                 )
             ),
+            array(
+                '/** @named(name=value, other="other value") */',
+                array(
+                    'description' => '',
+                    'tags'        => array(
+                        'named' => array(
+                            'name' => 'value',
+                            'other' => 'other value',
+                        ),
+                    )
+                )
+            ),
         );
     }
 
@@ -135,5 +140,13 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
     {
         $result = $this->object->parse($comment);
         $this->assertEquals($expected_result, $result);
+    }
+
+    /**
+     * @expectedException \Modules\Annotation\Exceptions\SyntaxException
+     */
+    public function testStringsNeedToBeTerminated(){
+
+        $this->object->parse('/** @something(invalid") */');
     }
 }

@@ -9,6 +9,7 @@
 
 namespace Modules\Annotation;
 
+use Closure;
 use ReflectionClass;
 use ReflectionFunction;
 use ReflectionMethod;

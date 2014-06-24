@@ -9,46 +9,40 @@
 
 namespace Modules\Annotation;
 
+use Modules\Annotation\Exceptions\SyntaxException;
+
 /**
  * AnnotationParser parses annotations from documentation comments.
  */
 class AnnotationParser
 {
-    private static $tag   = '[a-zA-Z]+[a-zA-Z0-9\-\_]*';
-    private static $value = '[ \t]*(?:\'(?:\\\\.|[^\'\\\\])*\'|"(?:\\\\.|[^"\\\\])*"|[^\'"\n\r,()@]+)[ \t]*';
+    private $parts;
+    private $position;
 
     private function stripCommentDecoration($comment)
     {
         return preg_replace('/^\s*\*\s?/m', '', trim($comment, '/*'));
     }
 
-    private function processValue($value)
-    {
-        preg_match_all('/(?<=,|^)' . self::$value . '(?=,|$)/', $value, $matches);
-        $result = array();
-        foreach ($matches[0] as $match) {
-            $result[] = trim($match, '"\' ');
-        }
-
-        return $result;
-    }
-
     /**
      * Parses a documentation comment.
      *
      * @param string $comment
+     *
      * @return array
      */
     public function parse($comment)
     {
-        $result  = array('tags' => array());
         $comment = $this->stripCommentDecoration($comment);
 
         // Extract the description part of the comment block
-        $parts = preg_split('/^\s*(?=@' . self::$tag . ')/m', $comment, 2);
+        $parts = preg_split('/^\s*(?=@[a-zA-Z]+)/m', $comment, 2);
 
-        $description           = trim($parts[0]);
-        $result['description'] = $description;
+        $result = array(
+            'tags'        => array(),
+            'description' => trim($parts[0])
+
+        );
 
         if (!isset($parts[1])) {
             return $result;
@@ -57,43 +51,155 @@ class AnnotationParser
         if (empty($trimmed)) {
             return $result;
         }
-        $result['tags'] = array();
 
-        $parts_pattern = '/\s*                                            # line start
-                 @(' . self::$tag . ')[ \t]*                                    # tag name
-                 (
-                    (?:\((?:' . self::$value . '(?:,' . self::$value . ')*)?\)) # value(s) in parentheses
-                    |' . self::$value . '|                                      # value or nothing
-                 )/xm';
+        $result['tags'] = $this->parseTags($parts[1]);
 
-        preg_match_all($parts_pattern, $parts[1], $matches, PREG_SET_ORDER);
+        return $result;
+    }
 
-        foreach ($matches as $match) {
-            $tag_name = $match[1];
-            $value    = trim($match[2]);
+    /**
+     * @param $tagString
+     *
+     * @throws Exceptions\SyntaxException
+     * @return array
+     */
+    private function parseTags($tagString)
+    {
+        $result = array();
 
-            if (empty($value)) {
-                $value = null;
-            } elseif (substr($value, 0, 1) === '(') {
-                $value = $this->processValue(trim($value, '()'));
-            } else {
-                $value = trim($value, '"\'');
+        $pattern        = '/(\'(?:\\\\.|[^\'\\\\])*\'|"(?:\\\\.|[^"\\\\])*"|[@(),=]|\s+)/';
+        $flags          = PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY;
+        $this->parts    = preg_split($pattern, $tagString, -1, $flags);
+        $this->position = -1;
+
+        $tagName    = null;
+        $parameters = null;
+        while (isset($this->parts[++$this->position])) {
+            switch ($this->parts[$this->position]) {
+                case '@':
+                    if (isset($tagName)) {
+                        $result[$tagName] = $parameters;
+                        $parameters       = null;
+                    }
+                    $tagName = $this->parseTagName();
+                    break;
+
+                case '(':
+                    $parameters = $this->parseParameters();
+                    break;
+
+                default:
+                    if (!ctype_space($this->parts[$this->position])) {
+                        throw new SyntaxException("Unexpected {$this->parts[$this->position]} found.");
+                    }
+                    if (!isset($parameters) && isset($tagName) && isset($this->parts[++$this->position])) {
+                        if ($this->parts[$this->position][0] === '@') {
+                            --$this->position;
+                        } else {
+                            $result[$tagName] = $this->getValue($this->parts[$this->position]);
+                            $tagName          = null;
+                        }
+                    }
+                    break;
             }
-
-            if(isset($result['tags'][$tag_name])) {
-                if(!is_array($result['tags'][$tag_name])) {
-                    $result['tags'][$tag_name] = array($result['tags'][$tag_name]);
-                }
-                if(is_array($value)) {
-                    $result['tags'][$tag_name] = array_merge($result['tags'][$tag_name], $value);
-                } else {
-                    $result['tags'][$tag_name][] = $value;
-                }
-            } else {
-                $result['tags'][$tag_name] = $value;
-            }
+        }
+        if (isset($tagName)) {
+            $result[$tagName] = $parameters;
         }
 
         return $result;
+    }
+
+    private function parseTagName()
+    {
+        return $this->parts[++$this->position];
+    }
+
+    private function parseParameters()
+    {
+        $parameters   = array();
+        $currentKey   = null;
+        $currentValue = null;
+        while (isset($this->parts[++$this->position])) {
+            switch ($this->parts[$this->position]) {
+                case ',':
+                    if (!isset($currentValue)) {
+                        throw new SyntaxException('Unexpected = found.');
+                    }
+                    $currentValue = $this->getValue($currentValue);
+                    if (isset($currentKey)) {
+                        $parameters[$currentKey] = $currentValue;
+                    } else {
+                        $parameters[] = $currentValue;
+                    }
+                    unset($currentKey, $currentValue);
+                    break;
+
+                case '=':
+                    if (!isset($currentValue)) {
+                        throw new SyntaxException('Unexpected = found.');
+                    }
+                    $currentValue = $this->getKey($currentValue);
+                    $currentKey   = $currentValue;
+                    break;
+
+                case ')':
+                    if (isset($currentValue)) {
+                        $currentValue = $this->getValue($currentValue);
+                        if (isset($currentKey)) {
+                            $parameters[$currentKey] = $currentValue;
+                        } else {
+                            $parameters[] = $currentValue;
+                        }
+                    }
+
+                    return $parameters;
+
+                default:
+                    $currentValue = $this->parts[$this->position];
+                    break;
+            }
+        }
+        throw new SyntaxException("Unexpected end of comment");
+    }
+
+    private function getKey($currentValue)
+    {
+        if (!ctype_alpha($currentValue)) {
+            throw new SyntaxException("Keys must be alphanumeric.");
+        }
+
+        return $currentValue;
+    }
+
+    private function getValue($currentValue)
+    {
+        switch ($currentValue) {
+            case 'true':
+                return true;
+            case 'false':
+                return false;
+            case 'null':
+                return null;
+            default:
+                if (is_numeric($currentValue)) {
+                    $number = (float) $currentValue;
+                    //check whether the number can be represented as an integer
+                    if (ctype_digit($currentValue) && $number <= PHP_INT_MAX) {
+                        $number = (int) $currentValue;
+                    }
+
+                    return $number;
+                } elseif (ctype_alpha($currentValue)) {
+                    return $currentValue;
+                }
+                switch ($currentValue[0]) {
+                    case '"':
+                    case "'":
+                        return substr($currentValue, 1, -1);
+                    default:
+                        throw new SyntaxException("Unexpected {$currentValue} found");
+                }
+        }
     }
 }
