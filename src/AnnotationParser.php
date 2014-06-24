@@ -190,7 +190,7 @@ class AnnotationParser
                     }
 
                     return $number;
-                } elseif (ctype_alpha($currentValue)) {
+                } elseif (preg_match('/^[a-zA-Z0-9_]+$/', $currentValue)) {
                     return $currentValue;
                 }
                 switch ($currentValue[0]) {

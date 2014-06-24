@@ -49,11 +49,11 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
                 )
             ),
             array(
-                '/** @something weird */',
+                '/** @something UTTERLY_WEIRD */',
                 array(
                     'description' => '',
                     'tags'        => array(
-                        'something' => 'weird'
+                        'something' => 'UTTERLY_WEIRD'
                     )
                 )
             ),
