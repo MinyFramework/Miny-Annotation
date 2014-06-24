@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/MinyFramework/Miny-Annotation.svg?branch=master)](https://travis-ci.org/MinyFramework/Miny-Annotation)
+
 Miny-Annotation
 ========
 Miny-Annotation is a module for the Miny Framework designed to read and parse documentation comments.
@@ -34,16 +36,14 @@ A documentation comment is directly (e.g. no blank lines between them) above the
 The comment begins with the description part that is terminated by a `@tag`.
 
 ### Examples:
-```
-/** This is a one-liner */
-```
-```
-/**
- * Multiple lines
- *
- * @annotation
- */
-```
+
+    /** This is a one-liner */
+
+    /**
+     * Multiple lines
+     *
+     * @annotation
+     */
 
 Annotation syntax
 --------
@@ -52,11 +52,20 @@ Annotation tags are preceded with an at-sign (@) and they start on a new line. T
 There are three types of annotations:
  * Simple annotations that do not have values (`@tag`)
  * Annotations that are followed by their values (`@tag that has a value`).
- * Annotations that are followed by parentheses (`@tag(value, 'other value')`.
+ * Annotations that are followed by parameter list (`@tag(value, 'other value')`.
 
 The values are strings delimited by commas. In the secound case only one value is allowed, commas and the following text are discarded. The third case allowes multiple values that are separated by commas. To allow commas and newlines in the value, simply enclose it in ' or ".
 
 If multiple annotations are present with the same name, their values will be aggregated in an array. In this case, annotations without values will be ignored.
 
+Note: named parameters are supported in the parameter list syntax. In this case an `=` sign separates the name and the value.
+
 ### Examples:
-`@tag`, `@tag value`, `@tag "some value"`, `@tag()`, `@tag(simple value)`, `@tag(multiple, values)`
+
+ * `@tag`
+ * `@tag value`
+ * `@tag "some value"`
+ * `@tag()`
+ * `@tag(simple value)`
+ * `@tag(multiple, values)`
+ * `@tag(name='value')`
