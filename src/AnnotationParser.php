@@ -67,7 +67,7 @@ class AnnotationParser
     {
         $result = array();
 
-        $pattern        = '/(\'(?:\\\\.|[^\'\\\\])*\'|"(?:\\\\.|[^"\\\\])*"|[@(),=]|\s+)/';
+        $pattern        = '/(\'(?:\\\\.|[^\'\\\\])*\'|"(?:\\\\.|[^"\\\\])*"|[@(),={}:]|\s+)/';
         $flags          = PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY;
         $this->parts    = preg_split($pattern, $tagString, -1, $flags);
         $this->position = -1;
@@ -81,11 +81,11 @@ class AnnotationParser
                         $result[$tagName] = $parameters;
                         $parameters       = null;
                     }
-                    $tagName = $this->parseTagName();
+                    $tagName = $this->parts[++$this->position];
                     break;
 
                 case '(':
-                    $parameters = $this->parseParameters();
+                    $parameters = $this->parseList(')');
                     break;
 
                 default:
@@ -96,7 +96,7 @@ class AnnotationParser
                         if ($this->parts[$this->position][0] === '@') {
                             --$this->position;
                         } else {
-                            $result[$tagName] = $this->getValue($this->parts[$this->position]);
+                            $result[$tagName] = $this->parts[$this->position];
                             $tagName          = null;
                         }
                     }
@@ -110,59 +110,6 @@ class AnnotationParser
         return $result;
     }
 
-    private function parseTagName()
-    {
-        return $this->parts[++$this->position];
-    }
-
-    private function parseParameters()
-    {
-        $parameters   = array();
-        $currentKey   = null;
-        $currentValue = null;
-        while (isset($this->parts[++$this->position])) {
-            switch ($this->parts[$this->position]) {
-                case ',':
-                    if (!isset($currentValue)) {
-                        throw new SyntaxException('Unexpected = found.');
-                    }
-                    $currentValue = $this->getValue($currentValue);
-                    if (isset($currentKey)) {
-                        $parameters[$currentKey] = $currentValue;
-                    } else {
-                        $parameters[] = $currentValue;
-                    }
-                    unset($currentKey, $currentValue);
-                    break;
-
-                case '=':
-                    if (!isset($currentValue)) {
-                        throw new SyntaxException('Unexpected = found.');
-                    }
-                    $currentValue = $this->getKey($currentValue);
-                    $currentKey   = $currentValue;
-                    break;
-
-                case ')':
-                    if (isset($currentValue)) {
-                        $currentValue = $this->getValue($currentValue);
-                        if (isset($currentKey)) {
-                            $parameters[$currentKey] = $currentValue;
-                        } else {
-                            $parameters[] = $currentValue;
-                        }
-                    }
-
-                    return $parameters;
-
-                default:
-                    $currentValue = $this->parts[$this->position];
-                    break;
-            }
-        }
-        throw new SyntaxException("Unexpected end of comment");
-    }
-
     private function getKey($currentValue)
     {
         if (!ctype_alpha($currentValue)) {
@@ -174,6 +121,9 @@ class AnnotationParser
 
     private function getValue($currentValue)
     {
+        if (is_array($currentValue)) {
+            return $currentValue;
+        }
         switch ($currentValue) {
             case 'true':
                 return true;
@@ -183,10 +133,10 @@ class AnnotationParser
                 return null;
             default:
                 if (is_numeric($currentValue)) {
-                    $number = (float) $currentValue;
+                    $number = (float)$currentValue;
                     //check whether the number can be represented as an integer
                     if (ctype_digit($currentValue) && $number <= PHP_INT_MAX) {
-                        $number = (int) $currentValue;
+                        $number = (int)$currentValue;
                     }
 
                     return $number;
@@ -201,5 +151,66 @@ class AnnotationParser
                         throw new SyntaxException("Unexpected {$currentValue} found");
                 }
         }
+    }
+
+    private function parseList($closing)
+    {
+        $array        = array();
+        $currentKey   = null;
+        $currentValue = null;
+        while (isset($this->parts[++$this->position])) {
+            switch ($this->parts[$this->position]) {
+                case '{':
+                    if (isset($currentValue)) {
+                        throw new SyntaxException('Unexpected { found.');
+                    }
+                    $currentValue = $this->parseList('}');
+                    break;
+
+                case ',':
+                    if (!isset($currentValue)) {
+                        throw new SyntaxException('Unexpected = found.');
+                    }
+                    $currentValue = $this->getValue($currentValue);
+                    if (isset($currentKey)) {
+                        $array[$currentKey] = $currentValue;
+                    } else {
+                        $array[] = $currentValue;
+                    }
+                    unset($currentKey, $currentValue);
+                    break;
+
+                case ':':
+                    if (!isset($currentValue)) {
+                        throw new SyntaxException('Unexpected : found.');
+                    }
+                    $currentKey = $this->getKey($currentValue);
+                    unset($currentValue);
+                    break;
+
+                case $closing:
+                    if (isset($currentValue)) {
+                        $currentValue = $this->getValue($currentValue);
+                        if (isset($currentKey)) {
+                            $array[$currentKey] = $currentValue;
+                        } else {
+                            $array[] = $currentValue;
+                        }
+                    }
+
+                    return $array;
+
+                default:
+                    if(trim($this->parts[$this->position]) === '') {
+                        continue;
+                    }
+                    if (isset($currentValue)) {
+                        throw new SyntaxException('Unexpected data found');
+                    }
+                    $currentValue = $this->parts[$this->position];
+                    break;
+            }
+        }
+        throw new SyntaxException("Unexpected end of comment");
     }
 }

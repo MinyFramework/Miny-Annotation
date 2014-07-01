@@ -120,7 +120,7 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
                 )
             ),
             array(
-                '/** @named(name=value, other="other value") */',
+                '/** @named(name: value, other: "other value") */',
                 array(
                     'description' => '',
                     'tags'        => array(
@@ -128,6 +128,21 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
                             'name'  => 'value',
                             'other' => 'other value',
                         ),
+                    )
+                )
+            ),
+            array(
+                '/** @annotation({key: "value", other: {}, "only value"}) */',
+                array(
+                    'description' => '',
+                    'tags' => array(
+                        'annotation' => array(
+                            array(
+                                'key' => 'value',
+                                'other' => array(),
+                                'only value'
+                            )
+                        )
                     )
                 )
             ),
