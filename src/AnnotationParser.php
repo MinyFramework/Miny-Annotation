@@ -66,40 +66,37 @@ class AnnotationParser
         $this->parts    = preg_split($pattern, $tagString, -1, $flags);
         $this->position = -1;
 
-        $tagName    = null;
-        $parameters = null;
         while (isset($this->parts[++$this->position])) {
             switch ($this->parts[$this->position]) {
                 case '@':
-                    if (isset($tagName)) {
-                        $comment[$tagName] = $parameters;
-                        $parameters        = null;
-                    }
-                    $tagName = $this->parts[++$this->position];
-                    break;
-
-                case '(':
-                    $parameters = $this->parseList(')');
-                    break;
-
-                default:
-                    if (!ctype_space($this->parts[$this->position])) {
-                        throw new SyntaxException("Unexpected {$this->parts[$this->position]} found.");
-                    }
-                    if (!isset($parameters) && isset($tagName) && isset($this->parts[++$this->position])) {
-                        if ($this->parts[$this->position][0] === '@') {
-                            --$this->position;
-                        } else {
-                            $comment->add($tagName, $this->parts[$this->position]);
-                            $tagName = null;
-                        }
-                    }
+                    $this->parseTag($comment);
                     break;
             }
         }
-        if (isset($tagName)) {
-            $comment[$tagName] = $parameters;
+    }
+
+    private function parseTag(Comment $comment)
+    {
+        $tagName = $this->parts[++$this->position];
+        if ($this->parts[++$this->position] === '(') {
+            $parameters = $this->parseList(')');
+        } else {
+            $parameters = '';
+            while (isset($this->parts[++$this->position])) {
+                $part = $this->parts[$this->position];
+                if (ctype_space($part) && strstr($part, "\n")) {
+                    --$this->position;
+                    break;
+                } elseif ($part === '@') {
+                    --$this->position;
+                    break;
+                } else {
+                    $parameters .= $part;
+                }
+            }
+            $parameters = trim($parameters);
         }
+        $comment->add($tagName, $parameters);
     }
 
     private function getKey($currentValue)

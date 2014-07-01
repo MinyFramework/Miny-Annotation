@@ -49,6 +49,17 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
                 )
             ),
             array(
+                '/**
+                @something with multiple words in a line
+                @another
+                */',
+                '',
+                array(
+                    'something' => 'with multiple words in a line',
+                    'another'   => null
+                )
+            ),
+            array(
                 '/** description
                    * @something weird */',
                 'description',
@@ -131,7 +142,7 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
         $comment = $this->object->parse($comment);
 
         $class = new \ReflectionClass($comment);
-        $tags = $class->getProperty('tags');
+        $tags  = $class->getProperty('tags');
         $tags->setAccessible(true);
 
         $this->assertEquals($description, $comment->getDescription());
