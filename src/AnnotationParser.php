@@ -27,46 +27,40 @@ class AnnotationParser
     /**
      * Parses a documentation comment.
      *
-     * @param string $comment
+     * @param string $commentString
      *
-     * @return array
+     * @return Comment
      */
-    public function parse($comment)
+    public function parse($commentString)
     {
-        $comment = $this->stripCommentDecoration($comment);
+        $commentString = $this->stripCommentDecoration($commentString);
 
         // Extract the description part of the comment block
-        $parts = preg_split('/^\s*(?=@[a-zA-Z]+)/m', $comment, 2);
+        $parts = preg_split('/^\s*(?=@[a-zA-Z]+)/m', $commentString, 2);
 
-        $result = array(
-            'tags'        => array(),
-            'description' => trim($parts[0])
-
-        );
+        $comment = new Comment(trim($parts[0]));
 
         if (!isset($parts[1])) {
-            return $result;
+            return $comment;
         }
         $trimmed = trim($parts[1]);
         if (empty($trimmed)) {
-            return $result;
+            return $comment;
         }
 
-        $result['tags'] = $this->parseTags($parts[1]);
+        $this->parseTags($comment, $parts[1]);
 
-        return $result;
+        return $comment;
     }
 
     /**
-     * @param $tagString
+     * @param Comment $comment
+     * @param         $tagString
      *
      * @throws Exceptions\SyntaxException
-     * @return array
      */
-    private function parseTags($tagString)
+    private function parseTags(Comment $comment, $tagString)
     {
-        $result = array();
-
         $pattern        = '/(\'(?:\\\\.|[^\'\\\\])*\'|"(?:\\\\.|[^"\\\\])*"|[@(),={}:]|\s+)/';
         $flags          = PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY;
         $this->parts    = preg_split($pattern, $tagString, -1, $flags);
@@ -78,8 +72,8 @@ class AnnotationParser
             switch ($this->parts[$this->position]) {
                 case '@':
                     if (isset($tagName)) {
-                        $result[$tagName] = $parameters;
-                        $parameters       = null;
+                        $comment[$tagName] = $parameters;
+                        $parameters        = null;
                     }
                     $tagName = $this->parts[++$this->position];
                     break;
@@ -96,18 +90,16 @@ class AnnotationParser
                         if ($this->parts[$this->position][0] === '@') {
                             --$this->position;
                         } else {
-                            $result[$tagName] = $this->parts[$this->position];
-                            $tagName          = null;
+                            $comment->add($tagName, $this->parts[$this->position]);
+                            $tagName = null;
                         }
                     }
                     break;
             }
         }
         if (isset($tagName)) {
-            $result[$tagName] = $parameters;
+            $comment[$tagName] = $parameters;
         }
-
-        return $result;
     }
 
     private function getKey($currentValue)
@@ -201,7 +193,7 @@ class AnnotationParser
                     return $array;
 
                 default:
-                    if(trim($this->parts[$this->position]) === '') {
+                    if (trim($this->parts[$this->position]) === '') {
                         continue;
                     }
                     if (isset($currentValue)) {

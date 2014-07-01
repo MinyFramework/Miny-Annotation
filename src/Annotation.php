@@ -33,16 +33,7 @@ class Annotation
      */
     public function __construct(AnnotationParser $parser)
     {
-        $this->parser  = $parser;
-    }
-
-    /**
-     * @param string $comment
-     * @return array
-     */
-    protected function parseComment($comment)
-    {
-        return $this->parser->parse($comment);
+        $this->parser = $parser;
     }
 
     /**
@@ -51,9 +42,9 @@ class Annotation
      */
     protected function process(Reflector $reflector)
     {
-        $comment = $reflector->getDocComment();
-        $parsed  = $this->parseComment($comment);
-        return new Comment($parsed['description'], $parsed['tags']);
+        return $this->parser->parse(
+            $reflector->getDocComment()
+        );
     }
 
     /**
@@ -82,7 +73,7 @@ class Annotation
      * Reads and parses documentation comments from methods.
      *
      * @param string|object $class
-     * @param string $method
+     * @param string        $method
      * @return Comment
      */
     public function readMethod($class, $method)
@@ -94,7 +85,7 @@ class Annotation
      * Reads and parses documentation comments from properties.
      *
      * @param string|object $class
-     * @param string $property
+     * @param string        $property
      * @return Comment
      */
     public function readProperty($class, $property)

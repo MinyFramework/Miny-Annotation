@@ -19,129 +19,103 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
         return array(
             array(
                 '/** */',
-                array(
-                    'description' => '',
-                    'tags'        => array()
-                )
+                '',
+                array()
             ),
             array(
                 '/** no annotations */',
-                array(
-                    'description' => 'no annotations',
-                    'tags'        => array()
-                )
+                'no annotations',
+                array()
             ),
             array(
                 '/**
                   * multiline
                   */',
-                array(
-                    'description' => 'multiline',
-                    'tags'        => array()
-                )
+                'multiline',
+                array()
             ),
             array(
                 '/** @something */',
+                '',
                 array(
-                    'description' => '',
-                    'tags'        => array(
-                        'something' => null
-                    )
+                    'something' => null
                 )
             ),
             array(
                 '/** @something UTTERLY_WEIRD */',
+                '',
                 array(
-                    'description' => '',
-                    'tags'        => array(
-                        'something' => 'UTTERLY_WEIRD'
-                    )
+                    'something' => 'UTTERLY_WEIRD'
                 )
             ),
             array(
                 '/** description
                    * @something weird */',
+                'description',
                 array(
-                    'description' => 'description',
-                    'tags'        => array(
-                        'something' => 'weird'
-                    )
+                    'something' => 'weird'
                 )
             ),
             array(
                 '/** @something() */',
+                '',
                 array(
-                    'description' => '',
-                    'tags'        => array(
-                        'something' => array()
-                    )
+                    'something' => array()
                 )
             ),
             array(
                 '/** @something(\'value\') */',
+                '',
                 array(
-                    'description' => '',
-                    'tags'        => array(
-                        'something' => array('value')
-                    )
+                    'something' => array('value')
                 )
             ),
             array(
                 '/** @something(with, "values") */',
+                '',
                 array(
-                    'description' => '',
-                    'tags'        => array(
-                        'something' => array('with', 'values')
-                    )
+                    'something' => array('with', 'values')
                 )
             ),
             array(
                 '/** @multiple
                      @and_more(asd)
                      @annotations("param1", "param2") */',
+                '',
                 array(
-                    'description' => '',
-                    'tags'        => array(
-                        'multiple'    => null,
-                        'and_more'    => array('asd'),
-                        'annotations' => array('param1', 'param2')
-                    )
+                    'multiple'    => null,
+                    'and_more'    => array('asd'),
+                    'annotations' => array('param1', 'param2')
                 )
             ),
             array(
                 '/** @multiple(tags) @in the @same line */',
+                '',
                 array(
-                    'description' => '',
-                    'tags'        => array(
-                        'multiple' => array('tags'),
-                        'in'       => 'the',
-                        'same'     => 'line',
-                    )
+                    'multiple' => array('tags'),
+                    'in'       => 'the',
+                    'same'     => 'line'
                 )
             ),
             array(
                 '/** @named(name: value, other: "other value") */',
+                '',
                 array(
-                    'description' => '',
-                    'tags'        => array(
-                        'named' => array(
-                            'name'  => 'value',
-                            'other' => 'other value',
-                        ),
+                    'named' => array(
+                        'name'  => 'value',
+                        'other' => 'other value'
                     )
                 )
             ),
             array(
                 '/** @annotation({key: "value", other: {}, "only value"}) */',
+                '',
                 array(
-                    'description' => '',
-                    'tags' => array(
-                        'annotation' => array(
-                            array(
-                                'key' => 'value',
-                                'other' => array(),
-                                'only value'
-                            )
+                    'annotation' => array(
+                        array(
+                            'key'   => 'value',
+                            'other' => array(),
+                            'only value'
                         )
                     )
                 )
@@ -152,10 +126,16 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider annotationProvider
      */
-    public function testParseSimpleAnnotation($comment, $expected_result)
+    public function testParseSimpleAnnotation($comment, $description, $expectedTags)
     {
-        $result = $this->object->parse($comment);
-        $this->assertEquals($expected_result, $result);
+        $comment = $this->object->parse($comment);
+
+        $class = new \ReflectionClass($comment);
+        $tags = $class->getProperty('tags');
+        $tags->setAccessible(true);
+
+        $this->assertEquals($description, $comment->getDescription());
+        $this->assertEquals($expectedTags, $tags->getValue($comment));
     }
 
     /**
