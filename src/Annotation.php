@@ -29,18 +29,11 @@ class Annotation
     private $parser;
 
     /**
-     * @var CommentFactory
-     */
-    private $factory;
-
-    /**
      * @param AnnotationParser $parser
-     * @param CommentFactory $factory
      */
-    public function __construct(AnnotationParser $parser, CommentFactory $factory)
+    public function __construct(AnnotationParser $parser)
     {
         $this->parser  = $parser;
-        $this->factory = $factory;
     }
 
     /**
@@ -60,7 +53,7 @@ class Annotation
     {
         $comment = $reflector->getDocComment();
         $parsed  = $this->parseComment($comment);
-        return $this->factory->create($parsed['description'], $parsed['tags']);
+        return new Comment($parsed['description'], $parsed['tags']);
     }
 
     /**

@@ -2,10 +2,11 @@
 
 namespace Modules\Annotation;
 
-use Modules\Annotation\Exceptions\SyntaxException;
-
 class AnnotationParserTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * @var AnnotationParser
+     */
     protected $object;
 
     protected function setUp()
@@ -124,7 +125,7 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
                     'description' => '',
                     'tags'        => array(
                         'named' => array(
-                            'name' => 'value',
+                            'name'  => 'value',
                             'other' => 'other value',
                         ),
                     )
@@ -145,8 +146,8 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
     /**
      * @expectedException \Modules\Annotation\Exceptions\SyntaxException
      */
-    public function testStringsNeedToBeTerminated(){
-
+    public function testStringsNeedToBeTerminated()
+    {
         $this->object->parse('/** @something(invalid") */');
     }
 }
