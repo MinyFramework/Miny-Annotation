@@ -9,13 +9,6 @@
 
 namespace Modules\Annotation;
 
-use Closure;
-use ReflectionClass;
-use ReflectionFunction;
-use ReflectionMethod;
-use ReflectionProperty;
-use Reflector;
-
 /**
  * Annotation reads and parses annotations from documentation comments.
  *
@@ -37,10 +30,10 @@ class Annotation
     }
 
     /**
-     * @param Reflector $reflector
+     * @param \Reflector $reflector
      * @return Comment
      */
-    protected function process(Reflector $reflector)
+    protected function process(\Reflector $reflector)
     {
         return $this->parser->parse(
             $reflector->getDocComment()
@@ -55,18 +48,18 @@ class Annotation
      */
     public function readClass($class)
     {
-        return $this->process(new ReflectionClass($class));
+        return $this->process(new \ReflectionClass($class));
     }
 
     /**
      * Reads and parses documentation comments from functions.
      *
-     * @param string|Closure $function
+     * @param string|\Closure $function
      * @return Comment
      */
     public function readFunction($function)
     {
-        return $this->process(new ReflectionFunction($function));
+        return $this->process(new \ReflectionFunction($function));
     }
 
     /**
@@ -78,7 +71,7 @@ class Annotation
      */
     public function readMethod($class, $method)
     {
-        return $this->process(new ReflectionMethod($class, $method));
+        return $this->process(new \ReflectionMethod($class, $method));
     }
 
     /**
@@ -90,6 +83,6 @@ class Annotation
      */
     public function readProperty($class, $property)
     {
-        return $this->process(new ReflectionProperty($class, $property));
+        return $this->process(new \ReflectionProperty($class, $property));
     }
 }
