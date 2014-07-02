@@ -167,10 +167,8 @@ class AnnotationParser
         }
     }
 
-    private
-    function parseList(
-        $closing
-    ) {
+    private function parseList($closing)
+    {
         $array        = array();
         $currentKey   = null;
         $currentValue = null;
@@ -250,18 +248,13 @@ class AnnotationParser
     /**
      * @param array $imports
      */
-    public
-    function setImports(
-        array $imports
-    ) {
+    public function setImports(array $imports)
+    {
         $this->imports = $this->globalImports + $imports;
     }
 
-    public
-    function addGlobalImport(
-        $fqn,
-        $class = null
-    ) {
+    public function addGlobalImport($fqn, $class = null)
+    {
         if ($class === null) {
             $class = substr($fqn, strrpos($fqn, '\\'));
         }
@@ -269,10 +262,8 @@ class AnnotationParser
         $this->imports[$class]       = $fqn;
     }
 
-    public
-    function setNamespace(
-        $namespace
-    ) {
+    public function setNamespace($namespace)
+    {
         $this->currentNamespace = $namespace;
     }
 
@@ -281,10 +272,8 @@ class AnnotationParser
      * @return string
      * @throws \InvalidArgumentException
      */
-    private
-    function getFullyQualifiedName(
-        $class
-    ) {
+    private function getFullyQualifiedName($class)
+    {
         if (!class_exists($class)) {
             //determine if class belongs to current namespace
             if (class_exists($this->currentNamespace . '\\' . $class)) {
