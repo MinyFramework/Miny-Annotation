@@ -10,7 +10,7 @@
 namespace Modules\Annotation;
 
 /**
- * Annotation reads and parses annotations from documentation comments.
+ * AnnotationReader reads and parses annotations from documentation comments.
  *
  * @author Dániel Buga <bugadani@gmail.com>
  */
