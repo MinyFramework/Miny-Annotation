@@ -14,7 +14,9 @@ class CommentTest extends \PHPUnit_Framework_TestCase
 
     public function testComment()
     {
-        $comment = new Comment('description', array('tag' => null, 'array' => array('a', 'b')));
+        $comment = new Comment('description');
+        $comment->add('tag', null);
+        $comment->add('array', array('a', 'b'));
         $this->assertEquals('description', $comment->getDescription());
         $this->assertFalse($comment->has('random tag'));
         $this->assertTrue($comment->has('tag'));

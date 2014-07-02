@@ -22,17 +22,16 @@ class Comment implements ArrayAccess
     /**
      * @var array
      */
-    private $tags;
+    private $tags = array();
 
     /**
      * @var array
      */
     private $annotations = array();
 
-    public function __construct($description, array $tags = array())
+    public function __construct($description)
     {
         $this->description = $description;
-        $this->tags        = $tags;
     }
 
     public function getDescription()
@@ -53,7 +52,7 @@ class Comment implements ArrayAccess
     public function get($tag)
     {
         if (!$this->has($tag)) {
-            throw new OutOfBoundsException(sprintf('Comment does not have @%s annotation.', $tag));
+            throw new OutOfBoundsException("Comment does not have @{$tag} annotation.");
         }
 
         return $this->tags[$tag];
