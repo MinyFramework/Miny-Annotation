@@ -9,6 +9,7 @@
 
 namespace Modules\Annotation;
 
+use Modules\Annotation\Annotations\Attribute;
 use Modules\Annotation\Annotations\Enum;
 
 class AnnotationContainer
@@ -66,9 +67,8 @@ class AnnotationContainer
                         'defaultAttribute' => 'values',
                         'attributes'       => array(
                             'values' => array(
-                                'required'   => true,
-                                'type'       => 'array',
-                                'array_type' => 'mixed'
+                                'required' => true,
+                                'type'     => array()
                             )
                         ),
                         'target'           => 'parameter'
@@ -92,60 +92,59 @@ class AnnotationContainer
 
     /**
      * @param $class
+     * @return AnnotationMetadata
      * @throws \UnexpectedValueException
      */
     private function readClassMetadata($class)
     {
-        $comment = $this->reader->readClass($class);
-        if (!$comment->has('Annotation')) {
-            throw new \UnexpectedValueException("Class {$class} has not been marked with @Annotation");
-        }
-        $metadata = new AnnotationMetadata;
-
-        //get constructor info
-        $reflector   = $this->getClassReflector($class);
-        $constructor = $reflector->getConstructor();
-        if ($constructor !== null && $constructor->getNumberOfParameters() > 0) {
-            $parameters = array();
-            foreach ($constructor->getParameters() as $parameter) {
-                $parameters[] = $parameter->getName();
+        if (!isset($this->annotations[$class])) {
+            $comment = $this->reader->readClass($class);
+            if (!$comment->has('Annotation')) {
+                throw new \UnexpectedValueException("Class {$class} has not been marked with @Annotation");
             }
-            $metadata->constructor = $parameters;
-        }
+            $metadata = new AnnotationMetadata;
 
-        //@Attribute annotations
-        $attributeClassName = 'Modules\\Annotation\\Annotations\\Attribute';
-        if ($comment->hasAnnotationType($attributeClassName)) {
-            foreach ($comment->getAnnotationType($attributeClassName) as $annotation) {
-                $metadata->attributes[$annotation->name] = array(
-                    'required'   => $annotation->required,
-                    'type'       => $annotation->type,
-                    'array_type' => $annotation->arrayType,
-                    'setter'     => $annotation->setter,
-                    'nullable'   => $annotation->nullable
-                );
-            }
-        }
-
-        //@Target
-        if ($comment->has('Target')) {
-            $target = $comment->get('Target');
-            if (is_array($target)) {
-                foreach ($target as $tg) {
-                    $this->checkTarget($tg);
+            //get constructor info
+            $reflector   = $this->getClassReflector($class);
+            $constructor = $reflector->getConstructor();
+            if ($constructor !== null && $constructor->getNumberOfParameters() > 0) {
+                $parameters = array();
+                foreach ($constructor->getParameters() as $parameter) {
+                    $parameters[] = $parameter->getName();
                 }
-            } else {
-                $this->checkTarget($target);
+                $metadata->constructor = $parameters;
             }
-            $metadata->target = $target;
+
+            //@Attribute annotations
+            $attributeClassName = 'Modules\\Annotation\\Annotations\\Attribute';
+            if ($comment->hasAnnotationType($attributeClassName)) {
+                foreach ($comment->getAnnotationType($attributeClassName) as $annotation) {
+                    /** @var $annotation Attribute */
+                    $metadata->attributes[$annotation->name] = $annotation->toArray();
+                }
+            }
+
+            //@Target
+            if ($comment->has('Target')) {
+                $target = $comment->get('Target');
+                if (is_array($target)) {
+                    foreach ($target as $tg) {
+                        $this->checkTarget($tg);
+                    }
+                } else {
+                    $this->checkTarget($target);
+                }
+                $metadata->target = $target;
+            }
+
+            //@DefaultAttribute
+            if ($comment->has('DefaultAttribute')) {
+                $metadata->defaultAttribute = $comment->get('DefaultAttribute');
+            }
+            $this->annotations[$class] = $metadata;
         }
 
-        //@DefaultAttribute
-        if ($comment->has('DefaultAttribute')) {
-            $metadata->defaultAttribute = $comment->get('DefaultAttribute');
-        }
-
-        $this->annotations[$class] = $metadata;
+        return $this->annotations[$class];
     }
 
     /**
@@ -159,10 +158,7 @@ class AnnotationContainer
      */
     public function readClass($class, array $attributes, $target)
     {
-        if (!isset($this->annotations[$class])) {
-            $this->readClassMetadata($class);
-        }
-        $metadata = $this->annotations[$class];
+        $metadata = $this->readClassMetadata($class);
         $this->enforceTarget($class, $target, $metadata->target);
         $attributes = $this->filterAttributes($metadata, $attributes);
 
@@ -183,7 +179,7 @@ class AnnotationContainer
             $arguments = array();
             foreach ($metadata->constructor as $key) {
                 if (!isset($attributes[$key])) {
-                    if ($metadata->attributes[$key]['required'] === true) {
+                    if ($metadata->attributes[$key]['required']) {
                         throw new \InvalidArgumentException("Required parameter {$key} is not set");
                     }
                     continue;
@@ -247,22 +243,7 @@ class AnnotationContainer
             if ($value === null && $metadata->attributes[$name]['nullable']) {
                 continue;
             }
-            if ($metadata->attributes[$name]['type'] === 'array') {
-                if (!is_array($value)) {
-                    throw new \InvalidArgumentException("Attribute {$name} must be an array");
-                }
-                $arrayType = $metadata->attributes[$name]['array_type'];
-                if ($arrayType !== 'mixed') {
-                    foreach ($value as $subValue) {
-                        if ($value === null && $metadata->attributes[$name]['nullable']) {
-                            continue;
-                        }
-                        $this->checkType($name, $subValue, $arrayType);
-                    }
-                }
-            } else {
-                $this->checkType($name, $value, $metadata->attributes[$name]['type']);
-            }
+            $this->checkType($name, $value, $metadata->attributes[$name]['type']);
         }
 
         return $attributes;
