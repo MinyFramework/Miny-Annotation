@@ -24,12 +24,14 @@ class CommentTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($comment->containsAll('array', array('a', 'c')));
     }
 
-    public function testToString(){
+    public function testToString()
+    {
         $comment = new Comment('description');
-        $this->assertEquals('description', (string) $comment);
+        $this->assertEquals('description', (string)$comment);
     }
 
-    public function testArrayInterface(){
+    public function testArrayInterface()
+    {
         $comment = new Comment('description');
         $this->assertFalse(isset($comment['foo']));
         $comment['foo'] = 'foo value';
@@ -54,5 +56,29 @@ class CommentTest extends \PHPUnit_Framework_TestCase
     {
         $comment = new Comment('');
         $comment->get('tag');
+    }
+
+    public function testClassAnnotationInterface()
+    {
+        $comment = new Comment('');
+        $comment->addAnnotation('someclass', 'whatever');
+        $comment->addAnnotation('someclass', 'also whatever');
+
+        $this->assertFalse($comment->hasAnnotationType('whatever'));
+        $this->assertTrue($comment->hasAnnotationType('someclass'));
+
+        $this->assertEquals(
+            array('whatever', 'also whatever'),
+            $comment->getAnnotationType('someclass')
+        );
+    }
+
+    /**
+     * @expectedException \OutOfBoundsException
+     */
+    public function testClassAnnotationInterfaceException()
+    {
+        $comment = new Comment('');
+        $comment->getAnnotationType('someclass');
     }
 }

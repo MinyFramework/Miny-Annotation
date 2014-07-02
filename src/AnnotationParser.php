@@ -19,6 +19,28 @@ class AnnotationParser
     private $parts;
     private $position;
 
+    /**
+     * @var AnnotationReader
+     */
+    private $reader;
+    private $imports;
+    private $globalImports = array(
+        'Attribute' => 'Modules\\Annotation\\Annotations\\Attribute',
+        'Enum'      => 'Modules\\Annotation\\Annotations\\Enum'
+    );
+    private $currentNamespace;
+
+    /**
+     * @var AnnotationContainer
+     */
+    private $container;
+
+    public function __construct(AnnotationReader $reader, AnnotationContainer $container)
+    {
+        $this->reader    = $reader;
+        $this->container = $container;
+    }
+
     private function stripCommentDecoration($comment)
     {
         return preg_replace('/^\s*\*\s?/m', '', trim($comment, '/*'));
@@ -28,15 +50,15 @@ class AnnotationParser
      * Parses a documentation comment.
      *
      * @param string $commentString
+     * @param        $target
      *
      * @return Comment
      */
-    public function parse($commentString)
+    public function parse($commentString, $target)
     {
-        $commentString = $this->stripCommentDecoration($commentString);
-
         // Extract the description part of the comment block
-        $parts = preg_split('/^\s*(?=@[a-zA-Z]+)/m', $commentString, 2);
+        $commentString = $this->stripCommentDecoration($commentString);
+        $parts         = preg_split('/^\s*(?=@[a-zA-Z]+)/m', $commentString, 2);
 
         $comment = new Comment(trim($parts[0]));
 
@@ -48,64 +70,65 @@ class AnnotationParser
             return $comment;
         }
 
-        $this->parseTags($comment, $parts[1]);
-
-        return $comment;
-    }
-
-    /**
-     * @param Comment $comment
-     * @param         $tagString
-     *
-     * @throws Exceptions\SyntaxException
-     */
-    private function parseTags(Comment $comment, $tagString)
-    {
         $pattern        = '/(\'(?:\\\\.|[^\'\\\\])*\'|"(?:\\\\.|[^"\\\\])*"|[@(),={}:]|\s+)/';
         $flags          = PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY;
-        $this->parts    = preg_split($pattern, $tagString, -1, $flags);
+        $this->parts    = preg_split($pattern, $parts[1], -1, $flags);
         $this->position = -1;
 
         while (isset($this->parts[++$this->position])) {
             switch ($this->parts[$this->position]) {
                 case '@':
-                    $this->parseTag($comment);
+                    list($name, $parameters, $isClass) = $this->parseTag();
+                    if ($isClass) {
+                        $className = $this->getFullyQualifiedName($name);
+                        $comment->addAnnotation(
+                            $className,
+                            $this->container->readClass($className, $parameters, $target)
+                        );
+                    } else {
+                        $comment->add($name, $parameters);
+                    }
                     break;
             }
         }
+
+        return $comment;
     }
 
-    private function parseTag(Comment $comment)
+    private function parseTag()
     {
-        $tagName = $this->parts[++$this->position];
+        $return = array(
+            $this->parts[++$this->position]
+        );
         if ($this->parts[++$this->position] === '(') {
-            $parameters = $this->parseList(')');
+            $return[1] = $this->parseList(')');
+            $return[2] = true;
         } else {
             $parameters = '';
             while (isset($this->parts[++$this->position])) {
                 $part = $this->parts[$this->position];
-                if (ctype_space($part) && strstr($part, "\n")) {
-                    --$this->position;
-                    break;
-                } elseif ($part === '@') {
-                    --$this->position;
-                    break;
-                } else {
-                    $parameters .= $part;
+                if ($part === '{') {
+                    $parameters = $this->parseList('}');
+                } elseif (is_string($parameters)) {
+                    if (ctype_space($part) && strstr($part, "\n")) {
+                        --$this->position;
+                        break;
+                    } elseif ($part === '@') {
+                        --$this->position;
+                        break;
+                    } else {
+                        $parameters .= $part;
+                    }
                 }
             }
-            $parameters = trim($parameters);
-        }
-        $comment->add($tagName, $parameters);
-    }
-
-    private function getKey($currentValue)
-    {
-        if (!ctype_alpha($currentValue)) {
-            throw new SyntaxException("Keys must be alphanumeric.");
+            if (is_string($parameters)) {
+                $parameters = trim($parameters);
+            }
+            $return[1] = $parameters;
+            $return[2] = false;
         }
 
-        return $currentValue;
+        return $return;
     }
 
     private function getValue($currentValue)
@@ -129,6 +152,8 @@ class AnnotationParser
                     }
 
                     return $number;
+                } elseif (is_object($currentValue)) {
+                    return $currentValue;
                 } elseif (preg_match('/^[a-zA-Z0-9_]+$/', $currentValue)) {
                     return $currentValue;
                 }
@@ -142,8 +167,10 @@ class AnnotationParser
         }
     }
 
-    private function parseList($closing)
-    {
+    private
+    function parseList(
+        $closing
+    ) {
         $array        = array();
         $currentKey   = null;
         $currentValue = null;
@@ -173,7 +200,11 @@ class AnnotationParser
                     if (!isset($currentValue)) {
                         throw new SyntaxException('Unexpected : found.');
                     }
-                    $currentKey = $this->getKey($currentValue);
+                    if (!ctype_alpha($currentValue)) {
+                        throw new SyntaxException('Keys must be alphanumeric.');
+                    }
+
+                    $currentKey = $currentValue;
                     unset($currentValue);
                     break;
 
@@ -189,6 +220,19 @@ class AnnotationParser
 
                     return $array;
 
+                case '@':
+                    list($className, $parameters, $isClass) = $this->parseTag();
+                    if (!$isClass) {
+                        throw new \UnexpectedValueException("Inner annotations must be class type annotations");
+                    }
+                    $className    = $this->getFullyQualifiedName($className);
+                    $currentValue = $this->container->readClass(
+                        $className,
+                        $parameters,
+                        'parameter'
+                    );
+                    break;
+
                 default:
                     if (trim($this->parts[$this->position]) === '') {
                         continue;
@@ -200,6 +244,68 @@ class AnnotationParser
                     break;
             }
         }
-        throw new SyntaxException("Unexpected end of comment");
+        throw new SyntaxException('Unexpected end of comment');
+    }
+
+    /**
+     * @param array $imports
+     */
+    public
+    function setImports(
+        array $imports
+    ) {
+        $this->imports = $this->globalImports + $imports;
+    }
+
+    public
+    function addGlobalImport(
+        $fqn,
+        $class = null
+    ) {
+        if ($class === null) {
+            $class = substr($fqn, strrpos($fqn, '\\'));
+        }
+        $this->globalImports[$class] = $fqn;
+        $this->imports[$class]       = $fqn;
+    }
+
+    public
+    function setNamespace(
+        $namespace
+    ) {
+        $this->currentNamespace = $namespace;
+    }
+
+    /**
+     * @param $class
+     * @return string
+     * @throws \InvalidArgumentException
+     */
+    private
+    function getFullyQualifiedName(
+        $class
+    ) {
+        if (!class_exists($class)) {
+            //determine if class belongs to current namespace
+            if (class_exists($this->currentNamespace . '\\' . $class)) {
+                $class = $this->currentNamespace . '\\' . $class;
+            } elseif (isset($this->imports[$class])) {
+                //determine if class is aliased directly
+                $class = $this->imports[$class];
+            } elseif (($nsDelimiter = strpos($class, '\\')) !== false) {
+                //if not, determine if class is part of one of the imported namespaces
+                $namespace = substr($class, 0, $nsDelimiter);
+                if (!isset($this->imports[$namespace])) {
+                    throw new \InvalidArgumentException("Annotation class {$class} is not found");
+                }
+                $class = $this->imports[$namespace] . substr($class, $nsDelimiter);
+            }
+            //if class still doesn't exist, throw exception
+            if (!class_exists($class)) {
+                throw new \InvalidArgumentException("Annotation class {$class} is not found");
+            }
+        }
+
+        return $class;
     }
 }

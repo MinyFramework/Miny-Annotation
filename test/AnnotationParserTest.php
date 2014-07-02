@@ -11,7 +11,12 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
-        $this->object = new AnnotationParser;
+        $this->object = new AnnotationParser(
+            $this->getMock('\\Modules\\Annotation\\AnnotationReader'),
+            $this->getMockBuilder('\\Modules\\Annotation\\AnnotationContainer')
+                ->disableOriginalConstructor()
+                ->getMock()
+        );
     }
 
     public function annotationProvider()
@@ -68,66 +73,12 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
                 )
             ),
             array(
-                '/** @something() */',
+                '/** @tag {"with", "array"} */',
                 '',
                 array(
-                    'something' => array()
-                )
-            ),
-            array(
-                '/** @something(\'value\') */',
-                '',
-                array(
-                    'something' => array('value')
-                )
-            ),
-            array(
-                '/** @something(with, "values") */',
-                '',
-                array(
-                    'something' => array('with', 'values')
-                )
-            ),
-            array(
-                '/** @multiple
-                     @and_more(asd)
-                     @annotations("param1", "param2") */',
-                '',
-                array(
-                    'multiple'    => null,
-                    'and_more'    => array('asd'),
-                    'annotations' => array('param1', 'param2')
-                )
-            ),
-            array(
-                '/** @multiple(tags) @in the @same line */',
-                '',
-                array(
-                    'multiple' => array('tags'),
-                    'in'       => 'the',
-                    'same'     => 'line'
-                )
-            ),
-            array(
-                '/** @named(name: value, other: "other value") */',
-                '',
-                array(
-                    'named' => array(
-                        'name'  => 'value',
-                        'other' => 'other value'
-                    )
-                )
-            ),
-            array(
-                '/** @annotation({key: "value", other: {}, "only value"}) */',
-                '',
-                array(
-                    'annotation' => array(
-                        array(
-                            'key'   => 'value',
-                            'other' => array(),
-                            'only value'
-                        )
+                    'tag' => array(
+                        'with',
+                        'array'
                     )
                 )
             ),
@@ -139,7 +90,7 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
      */
     public function testParseSimpleAnnotation($comment, $description, $expectedTags)
     {
-        $comment = $this->object->parse($comment);
+        $comment = $this->object->parse($comment, 'class');
 
         $class = new \ReflectionClass($comment);
         $tags  = $class->getProperty('tags');
@@ -154,6 +105,6 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
      */
     public function testStringsNeedToBeTerminated()
     {
-        $this->object->parse('/** @something(invalid") */');
+        $this->object->parse('/** @something(invalid") */', 'class');
     }
 }

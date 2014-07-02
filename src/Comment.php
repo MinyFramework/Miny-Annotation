@@ -24,6 +24,11 @@ class Comment implements ArrayAccess
      */
     private $tags;
 
+    /**
+     * @var array
+     */
+    private $annotations = array();
+
     public function __construct($description, array $tags = array())
     {
         $this->description = $description;
@@ -94,5 +99,50 @@ class Comment implements ArrayAccess
     public function offsetUnset($offset)
     {
         unset($this->tags[$offset]);
+    }
+
+    /**
+     * @param $className
+     * @param $annotation
+     */
+    public function addAnnotation($className, $annotation)
+    {
+        if (!isset($this->annotations[$className])) {
+            $this->annotations[$className] = array();
+        }
+        $this->annotations[$className][] = $annotation;
+    }
+
+    /**
+     * @return array
+     */
+    public function getAnnotations()
+    {
+        return $this->annotations;
+    }
+
+    /**
+     * @param $class
+     * @return array
+     */
+    public function hasAnnotationType($class)
+    {
+        return isset($this->annotations[$class]);
+    }
+
+    /**
+     * @param $class
+     *
+     * @throws \OutOfBoundsException
+     *
+     * @return array
+     */
+    public function getAnnotationType($class)
+    {
+        if (!isset($this->annotations[$class])) {
+            throw new \OutOfBoundsException("Annotation not set with type {$class}");
+        }
+
+        return $this->annotations[$class];
     }
 }
