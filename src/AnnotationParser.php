@@ -144,6 +144,9 @@ class AnnotationParser
             case 'null':
                 return null;
             default:
+                if (is_object($currentValue)) {
+                    return $currentValue;
+                }
                 if (is_numeric($currentValue)) {
                     $number = (float)$currentValue;
                     //check whether the number can be represented as an integer
@@ -152,17 +155,18 @@ class AnnotationParser
                     }
 
                     return $number;
-                } elseif (is_object($currentValue)) {
-                    return $currentValue;
-                } elseif (preg_match('/^[a-zA-Z0-9_]+$/', $currentValue)) {
-                    return $currentValue;
                 }
+                if (defined($currentValue)) {
+                    return constant($currentValue);
+                }
+
+
                 switch ($currentValue[0]) {
                     case '"':
                     case "'":
                         return substr($currentValue, 1, -1);
                     default:
-                        throw new SyntaxException("Unexpected {$currentValue} found");
+                        return $this->getFullyQualifiedName($currentValue);
                 }
         }
     }
@@ -285,13 +289,13 @@ class AnnotationParser
                 //if not, determine if class is part of one of the imported namespaces
                 $namespace = substr($class, 0, $nsDelimiter);
                 if (!isset($this->imports[$namespace])) {
-                    throw new \InvalidArgumentException("Annotation class {$class} is not found");
+                    throw new \InvalidArgumentException("Class {$class} is not found");
                 }
                 $class = $this->imports[$namespace] . substr($class, $nsDelimiter);
             }
             //if class still doesn't exist, throw exception
             if (!class_exists($class)) {
-                throw new \InvalidArgumentException("Annotation class {$class} is not found");
+                throw new \InvalidArgumentException("Class {$class} is not found");
             }
         }
 

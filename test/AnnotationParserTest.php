@@ -101,7 +101,7 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \Modules\Annotation\Exceptions\SyntaxException
+     * @expectedException \InvalidArgumentException
      */
     public function testStringsNeedToBeTerminated()
     {

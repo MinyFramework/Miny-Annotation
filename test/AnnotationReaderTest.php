@@ -5,9 +5,10 @@ namespace Modules\Annotation;
 /**
  * @Annotation
  * @DefaultAttribute value
- * @Attribute(value, required: true)
- * @Attribute(named, setter: 'constructor')
- * @Attribute(enum, type: @Enum({'foo', 'bar', 'foobar'}))
+ * @Attribute('value', required: true)
+ * @Attribute('named', setter: 'constructor')
+ * @Attribute('array', type: {'string', 'int'})
+ * @Attribute('enum', type: @Enum({'foo', 'bar', 'foobar'}))
  */
 class FooAnnotation
 {
@@ -29,7 +30,7 @@ class FooAnnotation
 /**
  * Test class.
  * @see foo
- * @FooAnnotation('foo', named: 'foobar', enum: 'bar')
+ * @FooAnnotation('foo', named: 'foobar', enum: 'bar', array: {'string', 2})
  */
 class TestClass
 {

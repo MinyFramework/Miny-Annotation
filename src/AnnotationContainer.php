@@ -276,12 +276,23 @@ class AnnotationContainer
                     throw new \InvalidArgumentException("Attribute {$name} must be a boolean");
                 }
                 break;
+            case 'mixed':
+                break;
             default:
                 if ($type instanceof Enum) {
                     if (!in_array($value, $type->values)) {
                         $values = implode(', ', $type->values);
                         throw new \InvalidArgumentException("Attribute {$name} must be one of the following: {$values}");
                     }
+                } elseif (is_array($type)) {
+                    if (!is_array($value)) {
+                        throw new \InvalidArgumentException("Attribute {$name} must be an array");
+                    }
+                    foreach ($type as $key => $expected) {
+                        $this->checkType($name . '[' . $key . ']', $value[$key], $expected);
+                    }
+                } elseif (!$value instanceof $type) {
+                    throw new \InvalidArgumentException("Attribute {$name} must be an instance of {$type}");
                 }
                 break;
         }
