@@ -78,67 +78,16 @@ class AnnotationContainer
     }
 
     /**
-     * @param string $class The fully qualified class name
-     * @param array  $attributes
-     * @param        $target
-     *
-     * @throws \InvalidArgumentException
-     *
-     * @return object
+     * @param $class
+     * @return \ReflectionClass
      */
-    public function readClass($class, array $attributes, $target)
+    private function getClassReflector($class)
     {
-        if (!isset($this->annotations[$class])) {
-            $this->readClassMetadata($class);
-        }
-        $metadata = $this->annotations[$class];
-        if ($metadata->target !== $target) {
-            if (!is_array($metadata->target) || !in_array($target, $metadata->target)) {
-                throw new \InvalidArgumentException("Annotation {$class} can not be applied to {$target} target");
-            }
-        }
-        foreach ($attributes as $key => $attribute) {
-            if (!is_string($key)) {
-                $attributes[$metadata->defaultAttribute] = $attribute;
-                unset($attributes[$key]);
-            }
-        }
-        $this->checkAttributeTypes($metadata, $attributes);
-        $attributesSet = array();
-        if (is_array($metadata->constructor)) {
-            $arguments = array();
-            foreach ($metadata->constructor as $key) {
-                if (!isset($attributes[$key]) && $metadata->attributes[$key]['required'] === true) {
-                    throw new \InvalidArgumentException("Required parameter {$key} is not set");
-                }
-                $attributesSet[$key] = true;
-                $arguments[$key]     = $attributes[$key];
-                unset($attributes[$key]);
-            }
-            $reflector  = $this->getClassReflector($class);
-            $annotation = $reflector->newInstanceArgs($arguments);
-        } else {
-            $annotation = new $class;
-        }
-        foreach ($attributes as $key => $value) {
-            if (!isset($metadata->attributes[$key])) {
-                continue;
-            }
-            $attributesSet[$key] = true;
-            if (isset($metadata->attributes[$key]['setter'])) {
-                $setter = $metadata->attributes[$key]['setter'];
-                $annotation->$setter($value);
-            } else {
-                $annotation->$key = $value;
-            }
-        }
-        foreach ($metadata->attributes as $key => $data) {
-            if ($data['required'] && !isset($attributesSet[$key])) {
-                throw new \InvalidArgumentException("Attribute {$key} is required but not set");
-            }
+        if (!isset($this->reflectors[$class])) {
+            $this->reflectors[$class] = new \ReflectionClass($class);
         }
 
-        return $annotation;
+        return $this->reflectors[$class];
     }
 
     /**
@@ -200,21 +149,98 @@ class AnnotationContainer
     }
 
     /**
-     * @param $class
-     * @return \ReflectionClass
+     * @param string $class The fully qualified class name
+     * @param array  $attributes
+     * @param        $target
+     *
+     * @throws \InvalidArgumentException
+     *
+     * @return object
      */
-    private function getClassReflector($class)
+    public function readClass($class, array $attributes, $target)
     {
-        if (!isset($this->reflectors[$class])) {
-            $this->reflectors[$class] = new \ReflectionClass($class);
+        if (!isset($this->annotations[$class])) {
+            $this->readClassMetadata($class);
         }
+        $metadata = $this->annotations[$class];
+        $this->enforceTarget($class, $target, $metadata->target);
+        $attributes = $this->filterAttributes($metadata, $attributes);
 
-        return $this->reflectors[$class];
+        return $this->injectAttributes($class, $attributes, $metadata);
     }
 
-    private function checkAttributeTypes(AnnotationMetadata $metadata, $attributes)
+    /**
+     * @param                    $class
+     * @param array              $attributes
+     * @param AnnotationMetadata $metadata
+     * @return object
+     * @throws \InvalidArgumentException
+     */
+    private function injectAttributes($class, array $attributes, $metadata)
+    {
+        $attributesSet = array();
+        if (is_array($metadata->constructor)) {
+            $arguments = array();
+            foreach ($metadata->constructor as $key) {
+                if (!isset($attributes[$key])) {
+                    if ($metadata->attributes[$key]['required'] === true) {
+                        throw new \InvalidArgumentException("Required parameter {$key} is not set");
+                    }
+                    continue;
+                }
+                $attributesSet[$key] = true;
+                $arguments[$key]     = $attributes[$key];
+                unset($attributes[$key]);
+            }
+            $reflector  = $this->getClassReflector($class);
+            $annotation = $reflector->newInstanceArgs($arguments);
+        } else {
+            $annotation = new $class;
+        }
+        foreach ($attributes as $key => $value) {
+            if (!isset($metadata->attributes[$key])) {
+                continue;
+            }
+            $attributesSet[$key] = true;
+            if (isset($metadata->attributes[$key]['setter'])) {
+                $setter = $metadata->attributes[$key]['setter'];
+                $annotation->$setter($value);
+            } else {
+                $annotation->$key = $value;
+            }
+        }
+        foreach ($metadata->attributes as $key => $data) {
+            if ($data['required'] && !isset($attributesSet[$key])) {
+                throw new \InvalidArgumentException("Attribute {$key} is required but not set");
+            }
+        }
+
+        return $annotation;
+    }
+
+    /**
+     * @param $class
+     * @param $target
+     * @param $expected
+     * @throws \InvalidArgumentException
+     */
+    private function enforceTarget($class, $target, $expected)
+    {
+        if ($expected !== $target) {
+            if (!is_array($expected) || !in_array($target, $expected)) {
+                throw new \InvalidArgumentException("Annotation {$class} can not be applied to {$target} target");
+            }
+        }
+    }
+
+    private function filterAttributes(AnnotationMetadata $metadata, $attributes)
     {
         foreach ($attributes as $name => $value) {
+            if (!is_string($name)) {
+                unset($attributes[$name]);
+                $name              = $metadata->defaultAttribute;
+                $attributes[$name] = $value;
+            }
             if (!isset($metadata->attributes[$name])) {
                 throw new \InvalidArgumentException("Unknown attribute: {$name}");
             }
@@ -238,6 +264,8 @@ class AnnotationContainer
                 $this->checkType($name, $value, $metadata->attributes[$name]['type']);
             }
         }
+
+        return $attributes;
     }
 
     /**

@@ -6,17 +6,18 @@ namespace Modules\Annotation;
  * @Annotation
  * @DefaultAttribute value
  * @Attribute('value', required: true)
- * @Attribute('named', setter: 'constructor')
+ * @Attribute('named', setter: 'setNamed')
  * @Attribute('array', type: {'string', 'int'})
  * @Attribute('enum', type: @Enum({'foo', 'bar', 'foobar'}))
  */
 class FooAnnotation
 {
+    const BAR = 'foobar';
     public $value;
     public $enum;
     private $named;
 
-    public function __construct($named)
+    public function setNamed($named)
     {
         $this->named = $named;
     }
@@ -31,6 +32,7 @@ class FooAnnotation
  * Test class.
  * @see foo
  * @FooAnnotation('foo', named: 'foobar', enum: 'bar', array: {'string', 2})
+ * @FooAnnotation(value: FooAnnotation::BAR)
  */
 class TestClass
 {
@@ -81,6 +83,7 @@ class AnnotationReaderTest extends \PHPUnit_Framework_TestCase
         $annotations = $comment->getAnnotationType('Modules\\Annotation\\FooAnnotation');
         $this->assertEquals('foo', $comment->get('see'));
         $this->assertEquals('foo', $annotations[0]->value);
+        $this->assertEquals('foobar', $annotations[1]->value);
         $this->assertEquals('foobar', $annotations[0]->getNamed());
     }
 

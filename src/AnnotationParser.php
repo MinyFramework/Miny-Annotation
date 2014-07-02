@@ -34,6 +34,7 @@ class AnnotationParser
      * @var AnnotationContainer
      */
     private $container;
+    private $stack = array();
 
     public function __construct(AnnotationReader $reader, AnnotationContainer $container)
     {
@@ -70,7 +71,12 @@ class AnnotationParser
             return $comment;
         }
 
-        $pattern        = '/(\'(?:\\\\.|[^\'\\\\])*\'|"(?:\\\\.|[^"\\\\])*"|[@(),={}:]|\s+)/';
+        $this->stack[]  = array(
+            $this->parts,
+            $this->position,
+            $this->imports
+        );
+        $pattern        = '/(\'(?:\\\\.|[^\'\\\\])*\'|"(?:\\\\.|[^"\\\\])*"|[@(),={}]|\s+|(?<![:])[:](?![:]))/';
         $flags          = PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY;
         $this->parts    = preg_split($pattern, $parts[1], -1, $flags);
         $this->position = -1;
@@ -91,6 +97,8 @@ class AnnotationParser
                     break;
             }
         }
+
+        list($this->parts, $this->position, $this->imports) = array_pop($this->stack);
 
         return $comment;
     }
@@ -158,6 +166,13 @@ class AnnotationParser
                 }
                 if (defined($currentValue)) {
                     return constant($currentValue);
+                }
+                if (strpos($currentValue, '::') !== false) {
+                    list($class, $constant) = explode('::', $currentValue, 2);
+                    $class = $this->getFullyQualifiedName($class);
+                    if (defined($class . '::' . $constant)) {
+                        return constant($class . '::' . $constant);
+                    }
                 }
 
 
@@ -278,25 +293,28 @@ class AnnotationParser
      */
     private function getFullyQualifiedName($class)
     {
-        if (!class_exists($class)) {
-            //determine if class belongs to current namespace
-            if (class_exists($this->currentNamespace . '\\' . $class)) {
-                $class = $this->currentNamespace . '\\' . $class;
-            } elseif (isset($this->imports[$class])) {
-                //determine if class is aliased directly
-                $class = $this->imports[$class];
-            } elseif (($nsDelimiter = strpos($class, '\\')) !== false) {
-                //if not, determine if class is part of one of the imported namespaces
-                $namespace = substr($class, 0, $nsDelimiter);
-                if (!isset($this->imports[$namespace])) {
-                    throw new \InvalidArgumentException("Class {$class} is not found");
-                }
-                $class = $this->imports[$namespace] . substr($class, $nsDelimiter);
-            }
-            //if class still doesn't exist, throw exception
-            if (!class_exists($class)) {
+        if (class_exists($class)) {
+            return $class;
+        }
+        //determine if class belongs to current namespace
+        if (class_exists($this->currentNamespace . '\\' . $class)) {
+            return $this->currentNamespace . '\\' . $class;
+        }
+        //if not, check imports
+        if (isset($this->imports[$class])) {
+            //determine if class is aliased directly
+            $class = $this->imports[$class];
+        } elseif (($nsDelimiter = strpos($class, '\\')) !== false) {
+            //if not, determine if class is part of one of the imported namespaces
+            $namespace = substr($class, 0, $nsDelimiter);
+            if (!isset($this->imports[$namespace])) {
                 throw new \InvalidArgumentException("Class {$class} is not found");
             }
+            $class = $this->imports[$namespace] . substr($class, $nsDelimiter);
+        }
+        //if class still doesn't exist, throw exception
+        if (!class_exists($class)) {
+            throw new \InvalidArgumentException("Class {$class} is not found");
         }
 
         return $class;
