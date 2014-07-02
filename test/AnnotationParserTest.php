@@ -43,7 +43,7 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
                 '/** @something */',
                 '',
                 array(
-                    'something' => null
+                    'something' => true
                 )
             ),
             array(
@@ -61,7 +61,7 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
                 '',
                 array(
                     'something' => 'with multiple words in a line',
-                    'another'   => null
+                    'another'   => true
                 )
             ),
             array(

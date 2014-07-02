@@ -132,7 +132,7 @@ class AnnotationParser
             if (is_string($parameters)) {
                 $parameters = trim($parameters);
             }
-            $return[1] = $parameters;
+            $return[1] = $parameters === '' ? true : $parameters;
             $return[2] = false;
         }
 
