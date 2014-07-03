@@ -16,20 +16,24 @@ use Modules\Annotation\Exceptions\SyntaxException;
  */
 class AnnotationParser
 {
-    private $parts;
-    private $position;
 
     /**
      * @var AnnotationReader
      */
     private $reader;
-    private $imports;
-    private $currentNamespace;
 
     /**
      * @var AnnotationContainer
      */
     private $container;
+
+    //state variables
+    private $parts;
+    private $position;
+    private $imports;
+    private $currentNamespace;
+
+    //state stack
     private $stack = array();
 
     public function __construct(AnnotationReader $reader, AnnotationContainer $container)
@@ -83,8 +87,10 @@ class AnnotationParser
         $this->stack[]  = array(
             $this->parts,
             $this->position,
-            $this->imports
+            $this->imports,
+            $this->currentNamespace
         );
+
         $pattern        = '/(\'(?:\\\\.|[^\'\\\\])*\'|"(?:\\\\.|[^"\\\\])*"|[@(),={}]|\s+|(?<![:])[:](?![:]))/';
         $flags          = PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY;
         $this->parts    = preg_split($pattern, $parts[1], -1, $flags);
@@ -107,7 +113,8 @@ class AnnotationParser
             }
         }
 
-        list($this->parts, $this->position, $this->imports) = array_pop($this->stack);
+        $savedState = array_pop($this->stack);
+        list($this->parts, $this->position, $this->imports, $this->currentNamespace) = $savedState;
 
         return $comment;
     }
