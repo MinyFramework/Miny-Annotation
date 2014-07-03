@@ -14,7 +14,7 @@ namespace Modules\Annotation;
  *
  * @author Dániel Buga <bugadani@gmail.com>
  */
-class AnnotationReader extends AbstractReader
+class AnnotationReader extends Reader
 {
     /**
      * @var AnnotationParser

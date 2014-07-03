@@ -9,7 +9,7 @@
 
 namespace Modules\Annotation;
 
-abstract class AbstractReader
+abstract class Reader
 {
     private $globalImports = array(
         'Attribute' => 'Modules\\Annotation\\Annotations\\Attribute',
