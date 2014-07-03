@@ -71,7 +71,7 @@ class AnnotationContainer
                                 'type'     => array()
                             )
                         ),
-                        'target'           => 'parameter'
+                        'target'           => 'annotation'
                     )
                 )
         );
@@ -105,14 +105,14 @@ class AnnotationContainer
             $metadata = new AnnotationMetadata;
 
             //get constructor info
-            $reflector   = $this->getClassReflector($class);
-            $constructor = $reflector->getConstructor();
+            $reflector    = $this->getClassReflector($class);
+            $constructor  = $reflector->getConstructor();
             $markRequired = array();
             if ($constructor !== null && $constructor->getNumberOfParameters() > 0) {
                 $parameters = array();
                 foreach ($constructor->getParameters() as $parameter) {
                     $parameters[] = $parameter->getName();
-                    if(!$parameter->allowsNull() && !$parameter->isDefaultValueAvailable()) {
+                    if (!$parameter->allowsNull() && !$parameter->isDefaultValueAvailable()) {
                         $markRequired[] = $parameter->getName();
                     }
                 }
@@ -128,7 +128,7 @@ class AnnotationContainer
                 }
             }
 
-            foreach($markRequired as $attribute) {
+            foreach ($markRequired as $attribute) {
                 $metadata->attributes[$attribute]['required'] = true;
             }
 
@@ -232,6 +232,9 @@ class AnnotationContainer
      */
     private function enforceTarget($class, $target, $expected)
     {
+        if ($expected === 'all') {
+            return;
+        }
         if ($expected !== $target) {
             if (!is_array($expected) || !in_array($target, $expected)) {
                 throw new \InvalidArgumentException("Annotation {$class} can not be applied to {$target} target");
@@ -265,7 +268,8 @@ class AnnotationContainer
      */
     private function checkTarget($target)
     {
-        if (!in_array($target, array('class', 'method', 'property', 'function'))) {
+        $validTargets = array('all', 'class', 'method', 'property', 'function', 'annotation');
+        if (!in_array($target, $validTargets)) {
             throw new \UnexpectedValueException("Invalid target: {$target}");
         }
     }

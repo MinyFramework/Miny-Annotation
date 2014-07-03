@@ -242,7 +242,7 @@ class AnnotationParser
                     $currentValue = $this->container->readClass(
                         $className,
                         $parameters,
-                        'parameter'
+                        'annotation'
                     );
                     break;
 
