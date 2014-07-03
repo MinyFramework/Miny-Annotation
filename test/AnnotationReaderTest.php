@@ -29,6 +29,16 @@ class FooAnnotation
 }
 
 /**
+ * @Annotation
+ * @Attribute('simple', type: {'string'})
+ * @Attribute('complex', type: {{'string', 'int'}})
+ */
+class ArrayAnnotation
+{
+    public $simple;
+}
+
+/**
  * Test class.
  * @see foo
  * @FooAnnotation('foo', named: 'foobar', enum: 'bar', array: {'string', 2})
@@ -47,6 +57,34 @@ class TestClass
     public function method()
     {
     }
+}
+
+/**
+ * @ArrayAnnotation(simple: {'foo', 'bar', 'baz'})
+ */
+class SimpleArray
+{
+}
+
+/**
+ * @ArrayAnnotation(complex: {{'foo', 1}, {'bar', 2}, {'baz', 3}})
+ */
+class ComplexArray
+{
+}
+
+/**
+ * @ArrayAnnotation(simple: {'foo', 'bar', 'baz', 2})
+ */
+class InvalidSimpleArray
+{
+}
+
+/**
+ * @ArrayAnnotation(complex: {{'foo', 'bar'}, {'bar', 2}, {'baz', 3}})
+ */
+class InvalidComplexArray
+{
 }
 
 /**
@@ -85,6 +123,28 @@ class AnnotationReaderTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('foo', $annotations[0]->value);
         $this->assertEquals('foobar', $annotations[1]->value);
         $this->assertEquals('foobar', $annotations[0]->getNamed());
+    }
+
+    public function testArrays()
+    {
+        $this->object->readClass('Modules\Annotation\SimpleArray');
+        $this->object->readClass('Modules\Annotation\ComplexArray');
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     */
+    public function testArrayTypeExceptions()
+    {
+        $this->object->readClass('Modules\Annotation\InvalidSimpleArray');
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     */
+    public function testArrayComplexTypeExceptions()
+    {
+        $this->object->readClass('Modules\Annotation\InvalidComplexArray');
     }
 
     /**

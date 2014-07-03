@@ -297,8 +297,14 @@ class AnnotationContainer
                     if (!is_array($value)) {
                         throw new \InvalidArgumentException("Attribute {$name} must be an array");
                     }
-                    foreach ($type as $key => $expected) {
-                        $this->checkType($name . '[' . $key . ']', $value[$key], $expected);
+                    if (count($type) === 1) {
+                        foreach ($value as $key => $val) {
+                            $this->checkType($name . '[' . $key . ']', $value[$key], $type[0]);
+                        }
+                    } else {
+                        foreach ($type as $key => $expected) {
+                            $this->checkType($name . '[' . $key . ']', $value[$key], $expected);
+                        }
                     }
                 } elseif (!$value instanceof $type) {
                     throw new \InvalidArgumentException("Attribute {$name} must be an instance of {$type}");
