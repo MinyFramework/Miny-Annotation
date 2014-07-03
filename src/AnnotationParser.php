@@ -32,6 +32,7 @@ class AnnotationParser
     private $position;
     private $imports;
     private $currentNamespace;
+    private $defaultNamespace;
 
     //state stack
     private $stack = array();
@@ -50,9 +51,10 @@ class AnnotationParser
         $this->imports = $imports;
     }
 
-    public function setNamespace($namespace)
+    public function setNamespaces($default, $current)
     {
-        $this->currentNamespace = $namespace;
+        $this->defaultNamespace = $default;
+        $this->currentNamespace = $current;
     }
 
     private function stripCommentDecoration($comment)
@@ -84,10 +86,11 @@ class AnnotationParser
             return $comment;
         }
 
-        $this->stack[]  = array(
+        $this->stack[] = array(
             $this->parts,
             $this->position,
             $this->imports,
+            $this->defaultNamespace,
             $this->currentNamespace
         );
 
@@ -113,8 +116,11 @@ class AnnotationParser
             }
         }
 
-        $savedState = array_pop($this->stack);
-        list($this->parts, $this->position, $this->imports, $this->currentNamespace) = $savedState;
+        list($this->parts,
+            $this->position,
+            $this->imports,
+            $this->defaultNamespace,
+            $this->currentNamespace) = array_pop($this->stack);
 
         return $comment;
     }
@@ -288,6 +294,10 @@ class AnnotationParser
     {
         if (class_exists($class)) {
             return $class;
+        }
+        //determine if class belongs to the default namespace
+        if (class_exists($this->defaultNamespace . '\\' . $class)) {
+            return $this->defaultNamespace . '\\' . $class;
         }
         //determine if class belongs to current namespace
         if (class_exists($this->currentNamespace . '\\' . $class)) {

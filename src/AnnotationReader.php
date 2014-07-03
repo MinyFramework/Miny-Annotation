@@ -28,6 +28,7 @@ class AnnotationReader extends AbstractReader
 
     private $imports = array();
     private $namespaces = array();
+    private $defaultNamespace = '';
 
     public function __construct()
     {
@@ -54,7 +55,8 @@ class AnnotationReader extends AbstractReader
         $this->parser->setImports(
             $this->getImports($filename, $startLine)
         );
-        $this->parser->setNamespace(
+        $this->parser->setNamespaces(
+            $this->defaultNamespace,
             $this->namespaces[$filename]
         );
 
@@ -109,6 +111,11 @@ class AnnotationReader extends AbstractReader
         }
 
         return $this->imports[$key] + $this->getGlobalImports();
+    }
+
+    public function setDefaultNamespace($namespace)
+    {
+        $this->defaultNamespace = $namespace;
     }
 
     private function getLines($file, $line)
