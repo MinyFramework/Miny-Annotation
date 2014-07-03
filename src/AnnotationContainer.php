@@ -81,7 +81,7 @@ class AnnotationContainer
      * @param $class
      * @return \ReflectionClass
      */
-    private function getClassReflector($class)
+    public function getClassReflector($class)
     {
         if (!isset($this->reflectors[$class])) {
             $this->reflectors[$class] = new \ReflectionClass($class);
@@ -273,6 +273,9 @@ class AnnotationContainer
     private function checkType($name, $value, $type)
     {
         switch ($type) {
+            case 'mixed':
+                break;
+
             case 'string':
                 if (!is_string($value)) {
                     throw new \InvalidArgumentException("Attribute {$name} must be a string");
@@ -299,9 +302,6 @@ class AnnotationContainer
                 }
                 break;
 
-            case 'mixed':
-                break;
-
             default:
                 if ($type instanceof Enum) {
                     if (!in_array($value, $type->values)) {
@@ -309,33 +309,38 @@ class AnnotationContainer
                         throw new \InvalidArgumentException("Attribute {$name} must be one of the following: {$values}");
                     }
                 } elseif (is_array($type)) {
-                    if (!is_array($value)) {
-                        throw new \InvalidArgumentException("Attribute {$name} must be an array");
-                    }
-                    $count = count($type);
-                    switch ($count) {
-                        case 0:
-                            break;
-
-                        case 1:
-                            foreach ($value as $key => $val) {
-                                $this->checkType($name . '[' . $key . ']', $value[$key], $type[0]);
-                            }
-                            break;
-
-                        case count($value):
-                            foreach ($type as $key => $expected) {
-                                $this->checkType($name . '[' . $key . ']', $value[$key], $expected);
-                            }
-                            break;
-
-                        default:
-                            throw new \InvalidArgumentException("Attribute {$name} must be an array with {$count} elements.");
-                            break;
-                    }
+                    $this->checkArrayType($name, $value, $type);
                 } elseif (!$value instanceof $type) {
                     throw new \InvalidArgumentException("Attribute {$name} must be an instance of {$type}");
                 }
+                break;
+        }
+    }
+
+    private function checkArrayType($name, $value, $type)
+    {
+        if (!is_array($value)) {
+            throw new \InvalidArgumentException("Attribute {$name} must be an array");
+        }
+        $count = count($type);
+        switch ($count) {
+            case 0:
+                break;
+
+            case 1:
+                foreach ($value as $key => $val) {
+                    $this->checkType($name . '[' . $key . ']', $value[$key], $type[0]);
+                }
+                break;
+
+            case count($value):
+                foreach ($type as $key => $expected) {
+                    $this->checkType($name . '[' . $key . ']', $value[$key], $expected);
+                }
+                break;
+
+            default:
+                throw new \InvalidArgumentException("Attribute {$name} must be an array with {$count} elements.");
                 break;
         }
     }

@@ -24,10 +24,6 @@ class AnnotationParser
      */
     private $reader;
     private $imports;
-    private $globalImports = array(
-        'Attribute' => 'Modules\\Annotation\\Annotations\\Attribute',
-        'Enum'      => 'Modules\\Annotation\\Annotations\\Enum'
-    );
     private $currentNamespace;
 
     /**
@@ -269,16 +265,7 @@ class AnnotationParser
      */
     public function setImports(array $imports)
     {
-        $this->imports = $this->globalImports + $imports;
-    }
-
-    public function addGlobalImport($fqn, $class = null)
-    {
-        if ($class === null) {
-            $class = substr($fqn, strrpos($fqn, '\\'));
-        }
-        $this->globalImports[$class] = $fqn;
-        $this->imports[$class]       = $fqn;
+        $this->imports = $imports;
     }
 
     public function setNamespace($namespace)

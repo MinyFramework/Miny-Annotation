@@ -20,12 +20,23 @@ class AnnotationReader
      * @var AnnotationParser
      */
     private $parser;
+
+    /**
+     * @var AnnotationContainer
+     */
+    private $container;
+
     private $imports = array();
     private $namespaces = array();
+    private $globalImports = array(
+        'Attribute' => 'Modules\\Annotation\\Annotations\\Attribute',
+        'Enum'      => 'Modules\\Annotation\\Annotations\\Enum'
+    );
 
     public function __construct()
     {
-        $this->parser = new AnnotationParser($this, new AnnotationContainer($this));
+        $this->container = new AnnotationContainer($this);
+        $this->parser    = new AnnotationParser($this, $this->container);
     }
 
     /**
@@ -65,7 +76,7 @@ class AnnotationReader
      */
     public function readClass($class)
     {
-        return $this->process(new \ReflectionClass($class), 'class');
+        return $this->process($this->container->getClassReflector($class), 'class');
     }
 
     /**
@@ -103,6 +114,14 @@ class AnnotationReader
         return $this->process(new \ReflectionProperty($class, $property), 'property');
     }
 
+    public function addGlobalImport($fqn, $class = null)
+    {
+        if ($class === null) {
+            $class = substr($fqn, strrpos($fqn, '\\'));
+        }
+        $this->globalImports[$class] = $fqn;
+    }
+
     private function getImports($fileName, $startLine)
     {
         $key = $fileName . $startLine;
@@ -115,7 +134,7 @@ class AnnotationReader
             $this->namespaces[$fileName] = $parser->getNamespace();
         }
 
-        return $this->imports[$key];
+        return $this->imports[$key] + $this->globalImports;
     }
 
     private function getLines($file, $line)
