@@ -2,8 +2,6 @@
 
 namespace Modules\Annotation;
 
-use Modules\Annotation\Exceptions\AnnotationException;
-
 /**
  * @Annotation
  * @DefaultAttribute value
@@ -11,6 +9,7 @@ use Modules\Annotation\Exceptions\AnnotationException;
  * @Attribute('named', setter: 'setNamed')
  * @Attribute('array', type: {'string', 'int'})
  * @Attribute('enum', type: @Enum({'foo', 'bar', 'foobar'}))
+ * @Target('class');
  */
 class FooAnnotation
 {

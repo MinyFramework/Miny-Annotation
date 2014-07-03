@@ -9,10 +9,12 @@
 
 namespace Modules\Annotation;
 
+use Modules\Annotation\Annotations\Target;
+
 class AnnotationMetadata
 {
     public $constructor = false;
-    public $target = 'class';
+    public $target = Target::TARGET_CLASS;
     public $defaultAttribute;
     public $attributes = array();
 

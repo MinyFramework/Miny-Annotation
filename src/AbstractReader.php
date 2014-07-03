@@ -13,7 +13,8 @@ abstract class AbstractReader
 {
     private $globalImports = array(
         'Attribute' => 'Modules\\Annotation\\Annotations\\Attribute',
-        'Enum'      => 'Modules\\Annotation\\Annotations\\Enum'
+        'Enum'      => 'Modules\\Annotation\\Annotations\\Enum',
+        'Target'    => 'Modules\\Annotation\\Annotations\\Target'
     );
 
     /**
