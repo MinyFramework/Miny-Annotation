@@ -107,10 +107,14 @@ class AnnotationContainer
             //get constructor info
             $reflector   = $this->getClassReflector($class);
             $constructor = $reflector->getConstructor();
+            $markRequired = array();
             if ($constructor !== null && $constructor->getNumberOfParameters() > 0) {
                 $parameters = array();
                 foreach ($constructor->getParameters() as $parameter) {
                     $parameters[] = $parameter->getName();
+                    if(!$parameter->allowsNull() && !$parameter->isDefaultValueAvailable()) {
+                        $markRequired[] = $parameter->getName();
+                    }
                 }
                 $metadata->constructor = $parameters;
             }
@@ -122,6 +126,10 @@ class AnnotationContainer
                     /** @var $annotation Attribute */
                     $metadata->attributes[$annotation->name] = $annotation->toArray();
                 }
+            }
+
+            foreach($markRequired as $attribute) {
+                $metadata->attributes[$attribute]['required'] = true;
             }
 
             //@Target
@@ -175,8 +183,10 @@ class AnnotationContainer
     private function injectAttributes($class, array $attributes, $metadata)
     {
         $attributesSet = array();
+        //instantiate annotation class
         if (is_array($metadata->constructor)) {
             $arguments = array();
+            //$metadata->constructor has the constructor parameter names in order
             foreach ($metadata->constructor as $key) {
                 if (!isset($attributes[$key])) {
                     if ($metadata->attributes[$key]['required']) {
@@ -268,25 +278,30 @@ class AnnotationContainer
                     throw new \InvalidArgumentException("Attribute {$name} must be a string");
                 }
                 break;
+
             case 'int':
             case 'number':
                 if (!is_int($value)) {
                     throw new \InvalidArgumentException("Attribute {$name} must be an integer");
                 }
                 break;
+
             case 'float':
                 if (!is_float($value)) {
                     throw new \InvalidArgumentException("Attribute {$name} must be a floating point number");
                 }
                 break;
+
             case 'bool':
             case 'boolean':
                 if (!is_bool($value)) {
                     throw new \InvalidArgumentException("Attribute {$name} must be a boolean");
                 }
                 break;
+
             case 'mixed':
                 break;
+
             default:
                 if ($type instanceof Enum) {
                     if (!in_array($value, $type->values)) {
@@ -297,14 +312,26 @@ class AnnotationContainer
                     if (!is_array($value)) {
                         throw new \InvalidArgumentException("Attribute {$name} must be an array");
                     }
-                    if (count($type) === 1) {
-                        foreach ($value as $key => $val) {
-                            $this->checkType($name . '[' . $key . ']', $value[$key], $type[0]);
-                        }
-                    } else {
-                        foreach ($type as $key => $expected) {
-                            $this->checkType($name . '[' . $key . ']', $value[$key], $expected);
-                        }
+                    $count = count($type);
+                    switch ($count) {
+                        case 0:
+                            break;
+
+                        case 1:
+                            foreach ($value as $key => $val) {
+                                $this->checkType($name . '[' . $key . ']', $value[$key], $type[0]);
+                            }
+                            break;
+
+                        case count($value):
+                            foreach ($type as $key => $expected) {
+                                $this->checkType($name . '[' . $key . ']', $value[$key], $expected);
+                            }
+                            break;
+
+                        default:
+                            throw new \InvalidArgumentException("Attribute {$name} must be an array with {$count} elements.");
+                            break;
                     }
                 } elseif (!$value instanceof $type) {
                     throw new \InvalidArgumentException("Attribute {$name} must be an instance of {$type}");
