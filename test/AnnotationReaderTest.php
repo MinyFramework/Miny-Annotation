@@ -2,6 +2,8 @@
 
 namespace Modules\Annotation;
 
+use Modules\Annotation\Exceptions\AnnotationException;
+
 /**
  * @Annotation
  * @DefaultAttribute value
@@ -132,7 +134,7 @@ class AnnotationReaderTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \InvalidArgumentException
+     * @expectedException \Modules\Annotation\Exceptions\AnnotationException
      */
     public function testArrayTypeExceptions()
     {
@@ -140,7 +142,7 @@ class AnnotationReaderTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \InvalidArgumentException
+     * @expectedException \Modules\Annotation\Exceptions\AnnotationException
      */
     public function testArrayComplexTypeExceptions()
     {
@@ -148,7 +150,7 @@ class AnnotationReaderTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \InvalidArgumentException
+     * @expectedException \Modules\Annotation\Exceptions\AnnotationException
      */
     public function testExceptionIsThrownWhenValueIsNotInEnum()
     {

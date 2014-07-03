@@ -11,6 +11,7 @@ namespace Modules\Annotation;
 
 use Modules\Annotation\Annotations\Attribute;
 use Modules\Annotation\Annotations\Enum;
+use Modules\Annotation\Exceptions\AnnotationException;
 
 class AnnotationContainer
 {
@@ -92,15 +93,17 @@ class AnnotationContainer
 
     /**
      * @param $class
+     *
+     * @throws AnnotationException
+     *
      * @return AnnotationMetadata
-     * @throws \UnexpectedValueException
      */
     private function readClassMetadata($class)
     {
         if (!isset($this->annotations[$class])) {
             $comment = $this->reader->readClass($class);
             if (!$comment->has('Annotation')) {
-                throw new \UnexpectedValueException("Class {$class} has not been marked with @Annotation");
+                throw new AnnotationException("Class {$class} has not been marked with @Annotation");
             }
             $metadata = new AnnotationMetadata;
 
@@ -160,7 +163,7 @@ class AnnotationContainer
      * @param array  $attributes
      * @param        $target
      *
-     * @throws \InvalidArgumentException
+     * @throws AnnotationException
      *
      * @return object
      */
@@ -177,8 +180,10 @@ class AnnotationContainer
      * @param                    $class
      * @param array              $attributes
      * @param AnnotationMetadata $metadata
+     *
+     * @throws AnnotationException
+     *
      * @return object
-     * @throws \InvalidArgumentException
      */
     private function injectAttributes($class, array $attributes, $metadata)
     {
@@ -190,7 +195,7 @@ class AnnotationContainer
             foreach ($metadata->constructor as $key) {
                 if (!isset($attributes[$key])) {
                     if ($metadata->attributes[$key]['required']) {
-                        throw new \InvalidArgumentException("Required parameter {$key} is not set");
+                        throw new AnnotationException("Required parameter {$key} is not set");
                     }
                     continue;
                 }
@@ -217,7 +222,7 @@ class AnnotationContainer
         }
         foreach ($metadata->attributes as $key => $data) {
             if ($data['required'] && !isset($attributesSet[$key])) {
-                throw new \InvalidArgumentException("Attribute {$key} is required but not set");
+                throw new AnnotationException("Attribute {$key} is required but not set");
             }
         }
 
@@ -228,7 +233,8 @@ class AnnotationContainer
      * @param $class
      * @param $target
      * @param $expected
-     * @throws \InvalidArgumentException
+     *
+     * @throws AnnotationException
      */
     private function enforceTarget($class, $target, $expected)
     {
@@ -237,11 +243,19 @@ class AnnotationContainer
         }
         if ($expected !== $target) {
             if (!is_array($expected) || !in_array($target, $expected)) {
-                throw new \InvalidArgumentException("Annotation {$class} can not be applied to {$target} target");
+                throw new AnnotationException("Annotation {$class} can not be applied to {$target} target");
             }
         }
     }
 
+    /**
+     * @param AnnotationMetadata $metadata
+     * @param                    $attributes
+     *
+     * @return mixed
+     *
+     * @throws AnnotationException
+     */
     private function filterAttributes(AnnotationMetadata $metadata, $attributes)
     {
         foreach ($attributes as $name => $value) {
@@ -251,7 +265,7 @@ class AnnotationContainer
                 $attributes[$name] = $value;
             }
             if (!isset($metadata->attributes[$name])) {
-                throw new \InvalidArgumentException("Unknown attribute: {$name}");
+                throw new AnnotationException("Unknown attribute: {$name}");
             }
             if ($value === null && $metadata->attributes[$name]['nullable']) {
                 continue;
@@ -264,13 +278,14 @@ class AnnotationContainer
 
     /**
      * @param $target
-     * @throws \UnexpectedValueException
+     *
+     * @throws AnnotationException
      */
     private function checkTarget($target)
     {
         $validTargets = array('all', 'class', 'method', 'property', 'function', 'annotation');
         if (!in_array($target, $validTargets)) {
-            throw new \UnexpectedValueException("Invalid target: {$target}");
+            throw new AnnotationException("Invalid target: {$target}");
         }
     }
 
@@ -282,27 +297,27 @@ class AnnotationContainer
 
             case 'string':
                 if (!is_string($value)) {
-                    throw new \InvalidArgumentException("Attribute {$name} must be a string");
+                    throw new AnnotationException("Attribute {$name} must be a string");
                 }
                 break;
 
             case 'int':
             case 'number':
                 if (!is_int($value)) {
-                    throw new \InvalidArgumentException("Attribute {$name} must be an integer");
+                    throw new AnnotationException("Attribute {$name} must be an integer");
                 }
                 break;
 
             case 'float':
                 if (!is_float($value)) {
-                    throw new \InvalidArgumentException("Attribute {$name} must be a floating point number");
+                    throw new AnnotationException("Attribute {$name} must be a floating point number");
                 }
                 break;
 
             case 'bool':
             case 'boolean':
                 if (!is_bool($value)) {
-                    throw new \InvalidArgumentException("Attribute {$name} must be a boolean");
+                    throw new AnnotationException("Attribute {$name} must be a boolean");
                 }
                 break;
 
@@ -310,12 +325,12 @@ class AnnotationContainer
                 if ($type instanceof Enum) {
                     if (!in_array($value, $type->values)) {
                         $values = implode(', ', $type->values);
-                        throw new \InvalidArgumentException("Attribute {$name} must be one of the following: {$values}");
+                        throw new AnnotationException("Attribute {$name} must be one of the following: {$values}");
                     }
                 } elseif (is_array($type)) {
                     $this->checkArrayType($name, $value, $type);
                 } elseif (!$value instanceof $type) {
-                    throw new \InvalidArgumentException("Attribute {$name} must be an instance of {$type}");
+                    throw new AnnotationException("Attribute {$name} must be an instance of {$type}");
                 }
                 break;
         }
@@ -324,7 +339,7 @@ class AnnotationContainer
     private function checkArrayType($name, $value, $type)
     {
         if (!is_array($value)) {
-            throw new \InvalidArgumentException("Attribute {$name} must be an array");
+            throw new AnnotationException("Attribute {$name} must be an array");
         }
         $count = count($type);
         switch ($count) {
@@ -344,7 +359,7 @@ class AnnotationContainer
                 break;
 
             default:
-                throw new \InvalidArgumentException("Attribute {$name} must be an array with {$count} elements.");
+                throw new AnnotationException("Attribute {$name} must be an array with {$count} elements.");
                 break;
         }
     }

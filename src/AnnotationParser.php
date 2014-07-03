@@ -38,6 +38,19 @@ class AnnotationParser
         $this->container = $container;
     }
 
+    /**
+     * @param array $imports
+     */
+    public function setImports(array $imports)
+    {
+        $this->imports = $imports;
+    }
+
+    public function setNamespace($namespace)
+    {
+        $this->currentNamespace = $namespace;
+    }
+
     private function stripCommentDecoration($comment)
     {
         return preg_replace('/^\s*\*\s?/m', '', trim($comment, '/*'));
@@ -114,7 +127,7 @@ class AnnotationParser
                 if ($part === '{') {
                     $parameters = $this->parseList('}');
                 } elseif (is_string($parameters)) {
-                    if (ctype_space($part) && strstr($part, "\n")) {
+                    if (strstr($part, "\n")) {
                         --$this->position;
                         break;
                     } elseif ($part === '@') {
@@ -236,18 +249,17 @@ class AnnotationParser
                 case '@':
                     list($className, $parameters, $isClass) = $this->parseTag();
                     if (!$isClass) {
-                        throw new \UnexpectedValueException("Inner annotations must be class type annotations");
+                        throw new \UnexpectedValueException('Inner annotations must be class type annotations');
                     }
-                    $className    = $this->getFullyQualifiedName($className);
                     $currentValue = $this->container->readClass(
-                        $className,
+                        $this->getFullyQualifiedName($className),
                         $parameters,
                         'annotation'
                     );
                     break;
 
                 default:
-                    if (trim($this->parts[$this->position]) === '') {
+                    if (ctype_space($this->parts[$this->position])) {
                         continue;
                     }
                     if (isset($currentValue)) {
@@ -258,19 +270,6 @@ class AnnotationParser
             }
         }
         throw new SyntaxException('Unexpected end of comment');
-    }
-
-    /**
-     * @param array $imports
-     */
-    public function setImports(array $imports)
-    {
-        $this->imports = $imports;
-    }
-
-    public function setNamespace($namespace)
-    {
-        $this->currentNamespace = $namespace;
     }
 
     /**
