@@ -53,10 +53,7 @@ class Attribute
 
             default:
                 if ($type instanceof Enum) {
-                    if (!in_array($value, $type->values)) {
-                        $values = implode(', ', $type->values);
-                        throw new AnnotationException("Attribute {$name} must be one of the following: {$values}");
-                    }
+                    $type->checkValue($name, $value);
                 } elseif (is_array($type)) {
                     self::checkArrayType($name, $value, $type);
                 } elseif (!$value instanceof $type) {
