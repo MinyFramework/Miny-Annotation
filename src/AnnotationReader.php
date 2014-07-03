@@ -129,4 +129,32 @@ class AnnotationReader extends AbstractReader
 
         return $output;
     }
+
+    /**
+     * @inheritdoc
+     */
+    public function readMethods($class)
+    {
+        $methods        = array();
+        $classReflector = $this->container->getClassReflector($class);
+        foreach ($classReflector->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
+            $methods[$method->getName()] = $this->process($method, 'method');
+        }
+
+        return $methods;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function readProperties($class)
+    {
+        $properties     = array();
+        $classReflector = $this->container->getClassReflector($class);
+        foreach ($classReflector->getProperties(\ReflectionProperty::IS_PUBLIC) as $property) {
+            $properties[$property->getName()] = $this->process($property, 'property');
+        }
+
+        return $properties;
+    }
 }

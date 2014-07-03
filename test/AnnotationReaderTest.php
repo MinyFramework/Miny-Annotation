@@ -179,4 +179,16 @@ class AnnotationReaderTest extends \PHPUnit_Framework_TestCase
             $this->object->readProperty('Modules\Annotation\TestClass', 'property')
         );
     }
+
+    public function testReadProperties()
+    {
+        $result = $this->object->readProperties('Modules\Annotation\TestClass');
+        $this->assertEquals(array('property'), array_keys($result));
+    }
+
+    public function testReadMethods()
+    {
+        $result = $this->object->readMethods('Modules\Annotation\TestClass');
+        $this->assertEquals(array('method'), array_keys($result));
+    }
 }

@@ -51,6 +51,22 @@ abstract class AbstractReader
      */
     abstract public function readProperty($class, $property);
 
+    /**
+     * Reads and parses documentation comments from methods.
+     *
+     * @param string|object $class
+     * @return Comment[]
+     */
+    abstract public function readMethods($class);
+
+    /**
+     * Reads and parses documentation comments from properties.
+     *
+     * @param string|object $class
+     * @return Comment[]
+     */
+    abstract public function readProperties($class);
+
     public function addGlobalImport($fqn, $class = null)
     {
         if ($class === null) {
