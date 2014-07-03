@@ -14,7 +14,7 @@ namespace Modules\Annotation;
  *
  * @author Dániel Buga <bugadani@gmail.com>
  */
-class AnnotationReader
+class AnnotationReader extends AbstractReader
 {
     /**
      * @var AnnotationParser
@@ -28,10 +28,6 @@ class AnnotationReader
 
     private $imports = array();
     private $namespaces = array();
-    private $globalImports = array(
-        'Attribute' => 'Modules\\Annotation\\Annotations\\Attribute',
-        'Enum'      => 'Modules\\Annotation\\Annotations\\Enum'
-    );
 
     public function __construct()
     {
@@ -69,10 +65,7 @@ class AnnotationReader
     }
 
     /**
-     * Reads and parses documentation comments from classes.
-     *
-     * @param string|object $class
-     * @return Comment
+     * @inheritdoc
      */
     public function readClass($class)
     {
@@ -80,10 +73,7 @@ class AnnotationReader
     }
 
     /**
-     * Reads and parses documentation comments from functions.
-     *
-     * @param string|\Closure $function
-     * @return Comment
+     * @inheritdoc
      */
     public function readFunction($function)
     {
@@ -91,11 +81,7 @@ class AnnotationReader
     }
 
     /**
-     * Reads and parses documentation comments from methods.
-     *
-     * @param string|object $class
-     * @param string        $method
-     * @return Comment
+     * @inheritdoc
      */
     public function readMethod($class, $method)
     {
@@ -103,23 +89,11 @@ class AnnotationReader
     }
 
     /**
-     * Reads and parses documentation comments from properties.
-     *
-     * @param string|object $class
-     * @param string        $property
-     * @return Comment
+     * @inheritdoc
      */
     public function readProperty($class, $property)
     {
         return $this->process(new \ReflectionProperty($class, $property), 'property');
-    }
-
-    public function addGlobalImport($fqn, $class = null)
-    {
-        if ($class === null) {
-            $class = substr($fqn, strrpos($fqn, '\\'));
-        }
-        $this->globalImports[$class] = $fqn;
     }
 
     private function getImports($fileName, $startLine)
@@ -134,7 +108,7 @@ class AnnotationReader
             $this->namespaces[$fileName] = $parser->getNamespace();
         }
 
-        return $this->imports[$key] + $this->globalImports;
+        return $this->imports[$key] + $this->getGlobalImports();
     }
 
     private function getLines($file, $line)
