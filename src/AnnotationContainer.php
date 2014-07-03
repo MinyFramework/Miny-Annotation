@@ -301,8 +301,14 @@ class AnnotationContainer
                 }
                 break;
 
-            case 'int':
             case 'number':
+                if (!is_numeric($value)) {
+                    throw new AnnotationException("Attribute {$name} must be a number or numeric string");
+                }
+                break;
+
+            case 'int':
+            case 'integer':
                 if (!is_int($value)) {
                     throw new AnnotationException("Attribute {$name} must be an integer");
                 }
