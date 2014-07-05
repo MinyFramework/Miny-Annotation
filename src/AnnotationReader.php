@@ -37,6 +37,14 @@ class AnnotationReader extends Reader
     }
 
     /**
+     * @inheritdoc
+     */
+    public function registerAnnotation($class, array $metadata)
+    {
+        $this->container->registerAnnotation($class, $metadata);
+    }
+
+    /**
      * @param \ReflectionClass|\ReflectionMethod|\ReflectionFunction|\ReflectionProperty $reflector
      * @param string                                                                     $target
      * @return Comment

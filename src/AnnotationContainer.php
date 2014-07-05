@@ -75,10 +75,10 @@ class AnnotationContainer
                         'target'           => Target::TARGET_ANNOTATION
                     )
                 ),
-            'Modules\\Annotation\\Annotations\\Target'      => AnnotationMetadata::create(
+            'Modules\\Annotation\\Annotations\\Target'    => AnnotationMetadata::create(
                     array(
                         'defaultAttribute' => 'target',
-                        'constructor' => array(
+                        'constructor'      => array(
                             'target'
                         ),
                         'attributes'       => array(
@@ -91,6 +91,11 @@ class AnnotationContainer
                     )
                 )
         );
+    }
+
+    public function registerAnnotation($class, array $metadata)
+    {
+        $this->annotations[$class] = AnnotationMetadata::create($metadata);
     }
 
     /**
@@ -120,16 +125,18 @@ class AnnotationContainer
             if (!$comment->has('Annotation')) {
                 throw new AnnotationException("Class {$class} has not been marked with @Annotation");
             }
-            $metadata = new AnnotationMetadata;
+            $metadata = array(
+                'attributes' => array()
+            );
 
             //get constructor info
             $reflector    = $this->getClassReflector($class);
             $constructor  = $reflector->getConstructor();
             $markRequired = array();
             if ($constructor !== null && $constructor->getNumberOfParameters() > 0) {
-                $metadata->constructor = array();
+                $metadata['constructor'] = array();
                 foreach ($constructor->getParameters() as $parameter) {
-                    $metadata->constructor[] = $parameter->getName();
+                    $metadata['constructor'][] = $parameter->getName();
                     if (!$parameter->allowsNull() && !$parameter->isDefaultValueAvailable()) {
                         $markRequired[] = $parameter->getName();
                     }
@@ -141,29 +148,32 @@ class AnnotationContainer
             if ($comment->hasAnnotationType($attributeClassName)) {
                 foreach ($comment->getAnnotationType($attributeClassName) as $annotation) {
                     /** @var $annotation Attribute */
-                    $metadata->attributes[$annotation->name] = $annotation->toArray();
+                    $metadata['attributes'][$annotation->name] = $annotation->toArray();
                 }
             }
 
             foreach ($markRequired as $attribute) {
-                $metadata->attributes[$attribute]['required'] = true;
+                if (!isset($metadata['attributes'][$attribute])) {
+                    $metadata['attributes'][$attribute] = array();
+                }
+                $metadata['attributes'][$attribute]['required'] = true;
             }
 
             //@Target
             $targetClassName = 'Modules\\Annotation\\Annotations\\Target';
             if ($comment->hasAnnotationType($targetClassName)) {
-                $metadata->target = 0;
+                $metadata['target'] = 0;
                 foreach ($comment->getAnnotationType($targetClassName) as $annotation) {
                     /** @var $annotation Target */
-                    $metadata->target |= $annotation->target;
+                    $metadata['target'] |= $annotation->target;
                 }
             }
 
             //@DefaultAttribute
             if ($comment->has('DefaultAttribute')) {
-                $metadata->defaultAttribute = $comment->get('DefaultAttribute');
+                $metadata['defaultAttribute'] = $comment->get('DefaultAttribute');
             }
-            $this->annotations[$class] = $metadata;
+            $this->registerAnnotation($class, $metadata);
         }
 
         return $this->annotations[$class];

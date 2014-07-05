@@ -18,6 +18,12 @@ abstract class Reader
     );
 
     /**
+     * @param       $class
+     * @param array $metadata
+     */
+    abstract public function registerAnnotation($class, array $metadata);
+
+    /**
      * Reads and parses documentation comments from classes.
      *
      * @param string|object $class
