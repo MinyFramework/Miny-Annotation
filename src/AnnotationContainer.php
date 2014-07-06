@@ -141,19 +141,6 @@ class AnnotationContainer
                 throw new AnnotationException("Class {$class} has not been marked with @Annotation");
             }
 
-            //get constructor info
-            $constructor  = $reflector->getConstructor();
-            $markRequired = array();
-            if ($constructor !== null && $constructor->getNumberOfParameters() > 0) {
-                $metadata->constructor = array();
-                foreach ($constructor->getParameters() as $parameter) {
-                    $metadata->constructor[] = $parameter->getName();
-                    if (!$parameter->allowsNull() && !$parameter->isDefaultValueAvailable()) {
-                        $markRequired[] = $parameter->getName();
-                    }
-                }
-            }
-
             //@Attribute annotations
             $attributeClassName = 'Modules\\Annotation\\Annotations\\Attribute';
             if ($comment->hasAnnotationType($attributeClassName)) {
@@ -161,13 +148,6 @@ class AnnotationContainer
                     /** @var $annotation Attribute */
                     $metadata->attributes[$annotation->name] = $annotation->toArray();
                 }
-            }
-
-            foreach ($markRequired as $attribute) {
-                if (!isset($metadata->attributes[$attribute])) {
-                    $metadata->attributes[$attribute] = array();
-                }
-                $metadata->attributes[$attribute]['required'] = true;
             }
 
             //@Target
@@ -183,6 +163,28 @@ class AnnotationContainer
             //@DefaultAttribute
             if ($comment->has('DefaultAttribute')) {
                 $metadata->defaultAttribute = $comment->get('DefaultAttribute');
+            }
+
+            //get constructor info
+            $constructor = $reflector->getConstructor();
+            if ($constructor !== null && $constructor->getNumberOfParameters() > 0) {
+                $metadata->constructor = array();
+                foreach ($constructor->getParameters() as $parameter) {
+                    $name = $parameter->getName();
+                    if (!isset($metadata->attributes[$name])) {
+                        $metadata->attributes[$name] = array(
+                            'required' => false,
+                            'type'     => 'mixed',
+                            'setter'   => null,
+                            'nullable' => false
+                        );
+                    }
+
+                    $metadata->constructor[] = $name;
+                    if (!$parameter->allowsNull() && !$parameter->isDefaultValueAvailable()) {
+                        $metadata->attributes[$name]['required'] = true;
+                    }
+                }
             }
             $this->annotations[$class] = $metadata;
         }
