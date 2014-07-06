@@ -112,27 +112,32 @@ class AnnotationContainer
     }
 
     /**
-     * @param $class
+     * @param      $class
+     * @param bool $isParent
      *
      * @throws AnnotationException
      *
      * @return AnnotationMetadata
      */
-    private function readClassMetadata($class)
+    private function readClassMetadata($class, $isParent = false)
     {
         if (!isset($this->annotations[$class])) {
             $reflector = $this->getClassReflector($class);
 
             $parent = $reflector->getParentClass();
-            if($parent){
+            if ($parent) {
                 $this->reflectors[$parent->getName()] = $parent;
-                $metadata = $this->readClassMetadata($parent->getName());
+
+                $metadata = $this->readClassMetadata($parent->getName(), true);
             } else {
                 $metadata = new AnnotationMetadata();
             }
 
             $comment = $this->reader->readClass($class);
             if (!$comment->has('Annotation')) {
+                if ($isParent) {
+                    return $metadata;
+                }
                 throw new AnnotationException("Class {$class} has not been marked with @Annotation");
             }
 
