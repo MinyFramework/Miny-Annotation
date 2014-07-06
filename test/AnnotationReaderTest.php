@@ -40,6 +40,14 @@ class ArrayAnnotation
 }
 
 /**
+ * @Annotation
+ */
+class InheritedAnnotation extends ArrayAnnotation
+{
+}
+
+
+/**
  * Test class.
  * @see foo
  * @FooAnnotation('foo', named: 'foobar', enum: 'bar', array: {'string', 2})
@@ -68,7 +76,7 @@ class SimpleArray
 }
 
 /**
- * @ArrayAnnotation(complex: {{'foo', 1}, {'bar', 2}, {'baz', 3}})
+ * @InheritedAnnotation(complex: {{'foo', 1}, {'bar', 2}, {'baz', 3}})
  */
 class ComplexArray
 {
@@ -82,7 +90,7 @@ class InvalidSimpleArray
 }
 
 /**
- * @ArrayAnnotation(complex: {{'foo', 'bar'}, {'bar', 2}, {'baz', 3}})
+ * @InheritedAnnotation(complex: {{'foo', 'bar'}, {'bar', 2}, {'baz', 3}})
  */
 class InvalidComplexArray
 {
