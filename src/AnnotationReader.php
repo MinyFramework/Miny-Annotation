@@ -79,6 +79,10 @@ class AnnotationReader extends Reader
      */
     public function readClass($class)
     {
+        if (is_object($class)) {
+            $class = get_class($class);
+        }
+
         return $this->process($this->container->getClassReflector($class), 'class');
     }
 
@@ -143,6 +147,9 @@ class AnnotationReader extends Reader
      */
     public function readMethods($class)
     {
+        if (is_object($class)) {
+            $class = get_class($class);
+        }
         $methods        = array();
         $classReflector = $this->container->getClassReflector($class);
         foreach ($classReflector->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
@@ -157,6 +164,9 @@ class AnnotationReader extends Reader
      */
     public function readProperties($class)
     {
+        if (is_object($class)) {
+            $class = get_class($class);
+        }
         $properties     = array();
         $classReflector = $this->container->getClassReflector($class);
         foreach ($classReflector->getProperties(\ReflectionProperty::IS_PUBLIC) as $property) {
