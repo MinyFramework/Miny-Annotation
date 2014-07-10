@@ -47,19 +47,19 @@ class AnnotationReader extends Reader
     /**
      * @param \ReflectionClass|\ReflectionMethod|\ReflectionFunction|\ReflectionProperty $reflector
      * @param string                                                                     $target
+     *
      * @return Comment
      */
     protected function process($reflector, $target)
     {
-        if (method_exists($reflector, 'getFileName')) {
-            $filename  = $reflector->getFileName();
-            $startLine = $reflector->getStartLine();
+        if (method_exists($reflector, 'getDeclaringClass')) {
+            $classReflector = $reflector->getDeclaringClass();
         } else {
-            /** @var $reflector \ReflectionProperty */
-            $class     = $reflector->getDeclaringClass();
-            $filename  = $class->getFileName();
-            $startLine = $class->getStartLine();
+            $classReflector = $reflector;
         }
+        $filename  = $classReflector->getFileName();
+        $startLine = $classReflector->getStartLine();
+
         $this->parser->setImports(
             $this->getImports($filename, $startLine)
         );
