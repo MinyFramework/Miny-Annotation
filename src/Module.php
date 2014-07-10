@@ -16,8 +16,8 @@ class Module extends \Miny\Modules\Module
     public function init(BaseApplication $app)
     {
         $app->getContainer()->addAlias(
-            __NAMESPACE__ . ' \\Reader',
-            __NAMESPACE__ . ' \\AnnotationReader'
+            __NAMESPACE__ . '\\Reader',
+            __NAMESPACE__ . '\\AnnotationReader'
         );
     }
 }
