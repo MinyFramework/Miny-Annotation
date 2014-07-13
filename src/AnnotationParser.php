@@ -86,14 +86,6 @@ class AnnotationParser
             return $comment;
         }
 
-        $this->stack[] = array(
-            $this->parts,
-            $this->position,
-            $this->imports,
-            $this->defaultNamespace,
-            $this->currentNamespace
-        );
-
         $pattern        = '/(\'(?:\\\\.|[^\'\\\\])*\'|"(?:\\\\.|[^"\\\\])*"|[@(),={}]|\s+|(?<![:])[:](?![:]))/';
         $flags          = PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY;
         $this->parts    = preg_split($pattern, $parts[1], -1, $flags);
@@ -105,22 +97,30 @@ class AnnotationParser
                     list($name, $parameters, $isClass) = $this->parseTag();
                     if ($isClass) {
                         $className = $this->getFullyQualifiedName($name);
+
+                        $this->stack[] = array(
+                            $this->parts,
+                            $this->position,
+                            $this->imports,
+                            $this->defaultNamespace,
+                            $this->currentNamespace
+                        );
                         $comment->addAnnotation(
                             $className,
                             $this->container->readClass($className, $parameters, $target)
                         );
+
+                        list($this->parts,
+                            $this->position,
+                            $this->imports,
+                            $this->defaultNamespace,
+                            $this->currentNamespace) = array_pop($this->stack);
                     } else {
                         $comment->add($name, $parameters);
                     }
                     break;
             }
         }
-
-        list($this->parts,
-            $this->position,
-            $this->imports,
-            $this->defaultNamespace,
-            $this->currentNamespace) = array_pop($this->stack);
 
         return $comment;
     }
