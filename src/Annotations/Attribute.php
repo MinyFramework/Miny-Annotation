@@ -63,11 +63,8 @@ class Attribute
         }
     }
 
-    private static function checkArrayType($name, $value, $type)
+    private static function checkArrayType($name, array $value, $type)
     {
-        if (!is_array($value)) {
-            throw new AnnotationException("Attribute {$name} must be an array");
-        }
         $count = count($type);
         switch ($count) {
             case 0:
@@ -75,13 +72,13 @@ class Attribute
 
             case 1:
                 foreach ($value as $key => $val) {
-                    self::checkType($name . '[' . $key . ']', $value[$key], $type[0]);
+                    self::checkType($name . "[{$key}]", $value[$key], $type[0]);
                 }
                 break;
 
             case count($value):
                 foreach ($type as $key => $expected) {
-                    self::checkType($name . '[' . $key . ']', $value[$key], $expected);
+                    self::checkType($name . "[{$key}]", $value[$key], $expected);
                 }
                 break;
 
@@ -89,6 +86,18 @@ class Attribute
                 throw new AnnotationException("Attribute {$name} must be an array with {$count} elements.");
                 break;
         }
+    }
+
+    private static $default = array(
+        'required' => false,
+        'type'     => 'mixed',
+        'setter'   => null,
+        'nullable' => false
+    );
+
+    public static function getDefaults()
+    {
+        return static::$default;
     }
 
     public $name;

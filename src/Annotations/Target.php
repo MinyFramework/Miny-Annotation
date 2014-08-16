@@ -52,6 +52,7 @@ class Target
 
     /**
      * @param string $target
+     *
      * @throws \InvalidArgumentException
      */
     private static function enforceValidTarget($target)

@@ -104,6 +104,13 @@ class WrongEnumValueClass
 }
 
 /**
+ * @FooAnnotation(named: 'foo')
+ */
+class MissingAnnotationParameterClass
+{
+}
+
+/**
  * Function docs.
  */
 function fooFunction()
@@ -162,6 +169,14 @@ class AnnotationReaderTest extends \PHPUnit_Framework_TestCase
     public function testExceptionIsThrownWhenValueIsNotInEnum()
     {
         $this->object->readClass('Modules\Annotation\WrongEnumValueClass');
+    }
+
+    /**
+     * @expectedException \Modules\Annotation\Exceptions\AnnotationException
+     */
+    public function testExceptionIsThrownWhenRequiredParamIsNotSet()
+    {
+        $this->object->readClass('Modules\Annotation\MissingAnnotationParameterClass');
     }
 
     public function testReadFunction()

@@ -16,7 +16,6 @@ use Modules\Annotation\Exceptions\SyntaxException;
  */
 class AnnotationParser
 {
-
     /**
      * @var AnnotationReader
      */
@@ -92,33 +91,31 @@ class AnnotationParser
         $this->position = -1;
 
         while (isset($this->parts[++$this->position])) {
-            switch ($this->parts[$this->position]) {
-                case '@':
-                    list($name, $parameters, $isClass) = $this->parseTag();
-                    if ($isClass) {
-                        $className = $this->getFullyQualifiedName($name);
+            if ($this->parts[$this->position] === '@') {
+                list($name, $parameters, $isClass) = $this->parseTag();
+                if ($isClass) {
+                    $className = $this->getFullyQualifiedName($name);
 
-                        $this->stack[] = array(
-                            $this->parts,
-                            $this->position,
-                            $this->imports,
-                            $this->defaultNamespace,
-                            $this->currentNamespace
-                        );
-                        $comment->addAnnotation(
-                            $className,
-                            $this->container->readClass($className, $parameters, $target)
-                        );
+                    $this->stack[] = array(
+                        $this->parts,
+                        $this->position,
+                        $this->imports,
+                        $this->defaultNamespace,
+                        $this->currentNamespace
+                    );
+                    $comment->addAnnotation(
+                        $className,
+                        $this->container->readClass($className, $parameters, $target)
+                    );
 
-                        list($this->parts,
-                            $this->position,
-                            $this->imports,
-                            $this->defaultNamespace,
-                            $this->currentNamespace) = array_pop($this->stack);
-                    } else {
-                        $comment->add($name, $parameters);
-                    }
-                    break;
+                    list($this->parts,
+                        $this->position,
+                        $this->imports,
+                        $this->defaultNamespace,
+                        $this->currentNamespace) = array_pop($this->stack);
+                } else {
+                    $comment->add($name, $parameters);
+                }
             }
         }
 
@@ -169,10 +166,13 @@ class AnnotationParser
         switch ($currentValue) {
             case 'true':
                 return true;
+
             case 'false':
                 return false;
+
             case 'null':
                 return null;
+
             default:
                 if (is_object($currentValue)) {
                     return $currentValue;
@@ -197,11 +197,11 @@ class AnnotationParser
                     }
                 }
 
-
                 switch ($currentValue[0]) {
                     case '"':
                     case "'":
                         return substr($currentValue, 1, -1);
+
                     default:
                         return $this->getFullyQualifiedName($currentValue);
                 }
@@ -287,6 +287,7 @@ class AnnotationParser
 
     /**
      * @param $class
+     *
      * @return string
      * @throws \InvalidArgumentException
      */
@@ -295,18 +296,22 @@ class AnnotationParser
         if (class_exists($class)) {
             return $class;
         }
+
         //determine if class belongs to the default namespace
         if (class_exists($this->defaultNamespace . '\\' . $class)) {
             return $this->defaultNamespace . '\\' . $class;
         }
+
         //determine if class belongs to current namespace
         if (class_exists($this->currentNamespace . '\\' . $class)) {
             return $this->currentNamespace . '\\' . $class;
         }
+
         //if not, check imports
         if (isset($this->imports[$class])) {
             //determine if class is aliased directly
             $class = $this->imports[$class];
+
         } elseif (($nsDelimiter = strpos($class, '\\')) !== false) {
             //if not, determine if class is part of one of the imported namespaces
             $namespace = substr($class, 0, $nsDelimiter);
@@ -315,6 +320,7 @@ class AnnotationParser
             }
             $class = $this->imports[$namespace] . substr($class, $nsDelimiter);
         }
+
         //if class still doesn't exist, throw exception
         if (!class_exists($class)) {
             throw new \InvalidArgumentException("Class {$class} is not found");

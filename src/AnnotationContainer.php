@@ -100,15 +100,33 @@ class AnnotationContainer
 
     /**
      * @param $class
+     *
      * @return \ReflectionClass
      */
     public function getClassReflector($class)
     {
+        if (is_object($class)) {
+            $class = get_class($class);
+        }
         if (!isset($this->reflectors[$class])) {
             $this->reflectors[$class] = new \ReflectionClass($class);
         }
 
         return $this->reflectors[$class];
+    }
+
+    private function createAnnotationMetadataInstance(\ReflectionClass $reflector)
+    {
+        $parent = $reflector->getParentClass();
+        if ($parent) {
+            $this->reflectors[$parent->getName()] = $parent;
+
+            $metadata = $this->readClassMetadata($parent->getName(), true);
+        } else {
+            $metadata = new AnnotationMetadata();
+        }
+
+        return $metadata;
     }
 
     /**
@@ -123,17 +141,9 @@ class AnnotationContainer
     {
         if (!isset($this->annotations[$class])) {
             $reflector = $this->getClassReflector($class);
+            $metadata  = $this->createAnnotationMetadataInstance($reflector);
+            $comment   = $this->reader->readClass($class);
 
-            $parent = $reflector->getParentClass();
-            if ($parent) {
-                $this->reflectors[$parent->getName()] = $parent;
-
-                $metadata = $this->readClassMetadata($parent->getName(), true);
-            } else {
-                $metadata = new AnnotationMetadata();
-            }
-
-            $comment = $this->reader->readClass($class);
             if (!$comment->has('Annotation')) {
                 if ($isParent) {
                     return $metadata;
@@ -141,55 +151,87 @@ class AnnotationContainer
                 throw new AnnotationException("Class {$class} has not been marked with @Annotation");
             }
 
-            //@Attribute annotations
-            $attributeClassName = 'Modules\\Annotation\\Annotations\\Attribute';
-            if ($comment->hasAnnotationType($attributeClassName)) {
-                foreach ($comment->getAnnotationType($attributeClassName) as $annotation) {
-                    /** @var $annotation Attribute */
-                    $metadata->attributes[$annotation->name] = $annotation->toArray();
-                }
-            }
+            $this->collectAttributeMetadata($comment, $metadata);
+            $this->collectTargetMetadata($comment, $metadata);
+            $this->collectDefaultAttributeMetadata($comment, $metadata);
+            $this->getConstructorInfo($reflector, $metadata);
 
-            //@Target
-            $targetClassName = 'Modules\\Annotation\\Annotations\\Target';
-            if ($comment->hasAnnotationType($targetClassName)) {
-                $metadata->target = 0;
-                foreach ($comment->getAnnotationType($targetClassName) as $annotation) {
-                    /** @var $annotation Target */
-                    $metadata->target |= $annotation->target;
-                }
-            }
-
-            //@DefaultAttribute
-            if ($comment->has('DefaultAttribute')) {
-                $metadata->defaultAttribute = $comment->get('DefaultAttribute');
-            }
-
-            //get constructor info
-            $constructor = $reflector->getConstructor();
-            if ($constructor !== null && $constructor->getNumberOfParameters() > 0) {
-                $metadata->constructor = array();
-                foreach ($constructor->getParameters() as $parameter) {
-                    $name = $parameter->getName();
-                    if (!isset($metadata->attributes[$name])) {
-                        $metadata->attributes[$name] = array(
-                            'required' => false,
-                            'type'     => 'mixed',
-                            'setter'   => null,
-                            'nullable' => false
-                        );
-                    }
-
-                    $metadata->constructor[] = $name;
-                    if (!$parameter->allowsNull() && !$parameter->isDefaultValueAvailable()) {
-                        $metadata->attributes[$name]['required'] = true;
-                    }
-                }
-            }
             $this->annotations[$class] = $metadata;
         }
 
         return $this->annotations[$class];
+    }
+
+    /**
+     * @param Comment            $comment
+     * @param AnnotationMetadata $metadata
+     */
+    private function collectAttributeMetadata($comment, $metadata)
+    {
+        //@Attribute annotations
+        $attributeClassName = 'Modules\\Annotation\\Annotations\\Attribute';
+        if (!$comment->hasAnnotationType($attributeClassName)) {
+            return;
+        }
+        foreach ($comment->getAnnotationType($attributeClassName) as $annotation) {
+            /** @var $annotation Attribute */
+            $metadata->attributes[$annotation->name] = $annotation->toArray();
+        }
+    }
+
+    /**
+     * @param Comment            $comment
+     * @param AnnotationMetadata $metadata
+     */
+    private function collectTargetMetadata($comment, $metadata)
+    {
+        //@Target
+        $targetClassName = 'Modules\\Annotation\\Annotations\\Target';
+        if (!$comment->hasAnnotationType($targetClassName)) {
+            return;
+        }
+        $metadata->target = 0;
+        foreach ($comment->getAnnotationType($targetClassName) as $annotation) {
+            /** @var $annotation Target */
+            $metadata->target |= $annotation->target;
+        }
+    }
+
+    /**
+     * @param Comment            $comment
+     * @param AnnotationMetadata $metadata
+     */
+    private function collectDefaultAttributeMetadata($comment, $metadata)
+    {
+        //@DefaultAttribute
+        if ($comment->has('DefaultAttribute')) {
+            $metadata->defaultAttribute = $comment->get('DefaultAttribute');
+        }
+    }
+
+    /**
+     * @param \ReflectionClass   $reflector
+     * @param AnnotationMetadata $metadata
+     */
+    private function getConstructorInfo($reflector, $metadata)
+    {
+        $constructor = $reflector->getConstructor();
+        if (!$constructor || $constructor->getNumberOfParameters() === 0) {
+            return;
+        }
+
+        $metadata->constructor = array();
+        foreach ($constructor->getParameters() as $parameter) {
+            $name = $parameter->getName();
+            if (!isset($metadata->attributes[$name])) {
+                $metadata->attributes[$name] = Attribute::getDefaults();
+            }
+
+            $metadata->constructor[] = $name;
+            if (!$parameter->allowsNull() && !$parameter->isDefaultValueAvailable()) {
+                $metadata->attributes[$name]['required'] = true;
+            }
+        }
     }
 
     /**
@@ -209,7 +251,7 @@ class AnnotationContainer
         }
         $attributes = $this->filterAttributes($metadata, $attributes);
 
-        return $this->injectAttributes($class, $attributes, $metadata);
+        return $this->createAnnotationInstance($class, $attributes, $metadata);
     }
 
     /**
@@ -221,44 +263,29 @@ class AnnotationContainer
      *
      * @return object
      */
-    private function injectAttributes($class, array $attributes, $metadata)
+    private function createAnnotationInstance($class, $attributes, $metadata)
     {
-        $attributesSet = array();
         //instantiate annotation class
         if (is_array($metadata->constructor)) {
             $arguments = array();
             //$metadata->constructor has the constructor parameter names in order
             foreach ($metadata->constructor as $key) {
-                if (!isset($attributes[$key])) {
-                    if ($metadata->attributes[$key]['required']) {
-                        throw new AnnotationException("Required parameter {$key} is not set");
-                    }
-                    continue;
+                if (isset($attributes[$key])) {
+                    $arguments[$key] = $attributes[$key];
+                    unset($attributes[$key]);
                 }
-                $attributesSet[$key] = true;
-                $arguments[$key]     = $attributes[$key];
-                unset($attributes[$key]);
             }
-            $reflector  = $this->getClassReflector($class);
-            $annotation = $reflector->newInstanceArgs($arguments);
+            $annotation = $this->getClassReflector($class)->newInstanceArgs($arguments);
         } else {
             $annotation = new $class;
         }
+
         foreach ($attributes as $key => $value) {
-            if (!isset($metadata->attributes[$key])) {
-                continue;
-            }
-            $attributesSet[$key] = true;
             if (isset($metadata->attributes[$key]['setter'])) {
                 $setter = $metadata->attributes[$key]['setter'];
                 $annotation->$setter($value);
             } else {
                 $annotation->$key = $value;
-            }
-        }
-        foreach ($metadata->attributes as $key => $data) {
-            if ($data['required'] && !isset($attributesSet[$key])) {
-                throw new AnnotationException("Attribute {$key} is required but not set");
             }
         }
 
@@ -267,13 +294,13 @@ class AnnotationContainer
 
     /**
      * @param AnnotationMetadata $metadata
-     * @param                    $attributes
+     * @param array              $attributes
      *
-     * @return mixed
+     * @return array
      *
      * @throws AnnotationException
      */
-    private function filterAttributes(AnnotationMetadata $metadata, $attributes)
+    private function filterAttributes($metadata, $attributes)
     {
         foreach ($attributes as $name => $value) {
             if (!is_string($name)) {
@@ -288,6 +315,12 @@ class AnnotationContainer
                 continue;
             }
             Attribute::checkType($name, $value, $metadata->attributes[$name]['type']);
+        }
+
+        foreach ($metadata->attributes as $name => $data) {
+            if ($data['required'] && !isset($attributes[$name])) {
+                throw new AnnotationException("Required parameter {$name} is not set");
+            }
         }
 
         return $attributes;
