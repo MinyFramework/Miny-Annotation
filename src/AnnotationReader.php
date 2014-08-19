@@ -142,11 +142,11 @@ class AnnotationReader extends Reader
     /**
      * @inheritdoc
      */
-    public function readMethods($class)
+    public function readMethods($class, $filter = \ReflectionMethod::IS_PUBLIC)
     {
         $methods        = array();
         $classReflector = $this->container->getClassReflector($class);
-        foreach ($classReflector->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
+        foreach ($classReflector->getMethods($filter) as $method) {
             $methods[$method->getName()] = $this->process($method, 'method');
         }
 
@@ -156,11 +156,11 @@ class AnnotationReader extends Reader
     /**
      * @inheritdoc
      */
-    public function readProperties($class)
+    public function readProperties($class, $filter = \ReflectionProperty::IS_PUBLIC)
     {
         $properties     = array();
         $classReflector = $this->container->getClassReflector($class);
-        foreach ($classReflector->getProperties(\ReflectionProperty::IS_PUBLIC) as $property) {
+        foreach ($classReflector->getProperties($filter) as $property) {
             $properties[$property->getName()] = $this->process($property, 'property');
         }
 

@@ -61,17 +61,21 @@ abstract class Reader
      * Reads and parses documentation comments from methods.
      *
      * @param string|object $class
+     * @param int           $filter
+     *
      * @return Comment[]
      */
-    abstract public function readMethods($class);
+    abstract public function readMethods($class, $filter = \ReflectionMethod::IS_PUBLIC);
 
     /**
      * Reads and parses documentation comments from properties.
      *
      * @param string|object $class
+     * @param int           $filter
+     *
      * @return Comment[]
      */
-    abstract public function readProperties($class);
+    abstract public function readProperties($class, $filter = \ReflectionProperty::IS_PUBLIC);
 
     public function addGlobalImport($fqn, $class = null)
     {
