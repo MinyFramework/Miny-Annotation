@@ -190,11 +190,13 @@ class AnnotationContainer
         if (!$comment->hasAnnotationType($targetClassName)) {
             return;
         }
-        $metadata->target = 0;
-        foreach ($comment->getAnnotationType($targetClassName) as $annotation) {
-            /** @var $annotation Target */
-            $metadata->target |= $annotation->target;
-        }
+
+        $metadata->target = array_reduce(
+            $comment->getAnnotationType($targetClassName),
+            function ($value, Target $target) {
+                return $value | $target->target;
+            }
+        );
     }
 
     /**
@@ -282,8 +284,7 @@ class AnnotationContainer
 
         foreach ($attributes as $key => $value) {
             if (isset($metadata->attributes[$key]['setter'])) {
-                $setter = $metadata->attributes[$key]['setter'];
-                $annotation->$setter($value);
+                $annotation->{$metadata->attributes[$key]['setter']}($value);
             } else {
                 $annotation->$key = $value;
             }
@@ -305,9 +306,10 @@ class AnnotationContainer
         foreach ($attributes as $name => $value) {
             if (!is_string($name)) {
                 unset($attributes[$name]);
-                $name              = $metadata->defaultAttribute;
-                $attributes[$name] = $value;
+                $attributes[$metadata->defaultAttribute] = $value;
             }
+        }
+        foreach ($attributes as $name => $value) {
             if (!isset($metadata->attributes[$name])) {
                 throw new AnnotationException("Unknown attribute: {$name}");
             }
@@ -317,8 +319,9 @@ class AnnotationContainer
             Attribute::checkType($name, $value, $metadata->attributes[$name]['type']);
         }
 
-        foreach ($metadata->attributes as $name => $data) {
-            if ($data['required'] && !isset($attributes[$name])) {
+        $unsetAttributes = array_diff_key($metadata->attributes, $attributes);
+        foreach ($unsetAttributes as $name => $data) {
+            if ($data['required']) {
                 throw new AnnotationException("Required parameter {$name} is not set");
             }
         }

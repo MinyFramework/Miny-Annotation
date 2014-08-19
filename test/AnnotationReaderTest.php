@@ -9,7 +9,7 @@ namespace Modules\Annotation;
  * @Attribute('named', setter: 'setNamed')
  * @Attribute('array', type: {'string', 'int'})
  * @Attribute('enum', type: @Enum({'foo', 'bar', 'foobar'}))
- * @Target('class');
+ * @Target('class')
  */
 class FooAnnotation
 {

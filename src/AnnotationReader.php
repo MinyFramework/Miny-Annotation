@@ -57,11 +57,12 @@ class AnnotationReader extends Reader
         } else {
             $classReflector = $reflector;
         }
-        $filename  = $classReflector->getFileName();
-        $startLine = $classReflector->getStartLine();
-
+        $filename = $classReflector->getFileName();
         $this->parser->setImports(
-            $this->getImports($filename, $startLine)
+            $this->getImports(
+                $filename,
+                $classReflector->getStartLine()
+            )
         );
         $this->parser->setNamespaces(
             $this->defaultNamespace,
