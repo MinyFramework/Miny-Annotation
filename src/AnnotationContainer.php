@@ -123,7 +123,7 @@ class AnnotationContainer
 
             $metadata = $this->readClassMetadata($parent->getName(), true);
         } else {
-            $metadata = new AnnotationMetadata();
+            $metadata = new AnnotationMetadata;
         }
 
         return $metadata;
@@ -166,7 +166,7 @@ class AnnotationContainer
      * @param Comment            $comment
      * @param AnnotationMetadata $metadata
      */
-    private function collectAttributeMetadata($comment, $metadata)
+    private function collectAttributeMetadata(Comment $comment, AnnotationMetadata $metadata)
     {
         //@Attribute annotations
         $attributeClassName = 'Modules\\Annotation\\Annotations\\Attribute';
@@ -183,7 +183,7 @@ class AnnotationContainer
      * @param Comment            $comment
      * @param AnnotationMetadata $metadata
      */
-    private function collectTargetMetadata($comment, $metadata)
+    private function collectTargetMetadata(Comment $comment, AnnotationMetadata $metadata)
     {
         //@Target
         $targetClassName = 'Modules\\Annotation\\Annotations\\Target';
@@ -203,7 +203,7 @@ class AnnotationContainer
      * @param Comment            $comment
      * @param AnnotationMetadata $metadata
      */
-    private function collectDefaultAttributeMetadata($comment, $metadata)
+    private function collectDefaultAttributeMetadata(Comment $comment, AnnotationMetadata $metadata)
     {
         //@DefaultAttribute
         if ($comment->has('DefaultAttribute')) {
@@ -215,7 +215,7 @@ class AnnotationContainer
      * @param \ReflectionClass   $reflector
      * @param AnnotationMetadata $metadata
      */
-    private function getConstructorInfo($reflector, $metadata)
+    private function getConstructorInfo(\ReflectionClass $reflector, AnnotationMetadata $metadata)
     {
         $constructor = $reflector->getConstructor();
         if (!$constructor || $constructor->getNumberOfParameters() === 0) {
@@ -265,7 +265,7 @@ class AnnotationContainer
      *
      * @return object
      */
-    private function createAnnotationInstance($class, $attributes, $metadata)
+    private function createAnnotationInstance($class, $attributes, AnnotationMetadata $metadata)
     {
         //instantiate annotation class
         if (is_array($metadata->constructor)) {
@@ -301,7 +301,7 @@ class AnnotationContainer
      *
      * @throws AnnotationException
      */
-    private function filterAttributes($metadata, $attributes)
+    private function filterAttributes(AnnotationMetadata $metadata, $attributes)
     {
         foreach ($attributes as $name => $value) {
             if (!is_string($name)) {

@@ -12,7 +12,6 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
         $this->object = new AnnotationParser(
-            $this->getMock('\\Modules\\Annotation\\AnnotationReader'),
             $this->getMockBuilder('\\Modules\\Annotation\\AnnotationContainer')
                 ->disableOriginalConstructor()
                 ->getMock()

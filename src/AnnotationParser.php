@@ -17,11 +17,6 @@ use Modules\Annotation\Exceptions\SyntaxException;
 class AnnotationParser
 {
     /**
-     * @var AnnotationReader
-     */
-    private $reader;
-
-    /**
      * @var AnnotationContainer
      */
     private $container;
@@ -36,9 +31,8 @@ class AnnotationParser
     //state stack
     private $stack = array();
 
-    public function __construct(AnnotationReader $reader, AnnotationContainer $container)
+    public function __construct(AnnotationContainer $container)
     {
-        $this->reader    = $reader;
         $this->container = $container;
     }
 

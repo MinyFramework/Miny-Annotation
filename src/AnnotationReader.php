@@ -33,7 +33,7 @@ class AnnotationReader extends Reader
     public function __construct()
     {
         $this->container = new AnnotationContainer($this);
-        $this->parser    = new AnnotationParser($this, $this->container);
+        $this->parser    = new AnnotationParser($this->container);
     }
 
     /**

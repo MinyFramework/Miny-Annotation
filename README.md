@@ -10,7 +10,7 @@ To create the Annotation object a suitable parser and Comment factory must be su
 separate to make the component extendable.
 
 ```
-$parser = new \Modules\Annotation\AnnotationParser;
+$parser = new \Modules\Annotation\AnnotationParser(new \Modules\Annotation\AnnotationContainer);
 $factory = new \Modules\Annotation\CommentFactory;
 $annotation = new \Modules\Annotation\Annotation($parser, $factory);
 ```

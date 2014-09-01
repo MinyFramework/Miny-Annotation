@@ -22,7 +22,7 @@ class UseStatementParser
     public function getNamespace()
     {
         if (!isset($this->namespace)) {
-            $this->position = $size = count($this->tokens) - 1;
+            $this->position = count($this->tokens) - 1;
             while (!$this->match(T_NAMESPACE)) {
                 --$this->position;
                 if (!$this->valid()) {
