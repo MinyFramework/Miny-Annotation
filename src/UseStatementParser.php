@@ -31,8 +31,7 @@ class UseStatementParser
                     return $this->namespace;
                 }
             }
-            $this->skip(T_WHITESPACE);
-            $this->skip(T_NS_SEPARATOR);
+            $this->skip(T_WHITESPACE, T_NS_SEPARATOR);
             $this->namespace = $this->parseClassName();
         }
 
@@ -55,11 +54,7 @@ class UseStatementParser
             }
             $first = false;
 
-            $this->skip(T_WHITESPACE);
-            $this->skip(T_COMMENT);
-            $this->skip(T_DOC_COMMENT);
-            $this->skip(T_WHITESPACE);
-            $this->skip(T_NS_SEPARATOR);
+            $this->skip(T_WHITESPACE, T_COMMENT, T_DOC_COMMENT, T_NS_SEPARATOR);
 
             $fqn       = $this->parseClassName();
             $shortName = $this->tokens[$this->position - 1][1];
@@ -74,9 +69,10 @@ class UseStatementParser
         return $imports;
     }
 
-    private function skip($token)
+    private function skip()
     {
-        if ($this->tokens[$this->position][0] === $token) {
+        $tokens = func_get_args();
+        while (in_array($this->tokens[$this->position][0], $tokens)) {
             $this->step();
         }
     }
