@@ -56,6 +56,9 @@ class UseStatementParser
             $first = false;
 
             $this->skip(T_WHITESPACE);
+            $this->skip(T_COMMENT);
+            $this->skip(T_DOC_COMMENT);
+            $this->skip(T_WHITESPACE);
             $this->skip(T_NS_SEPARATOR);
 
             $fqn       = $this->parseClassName();

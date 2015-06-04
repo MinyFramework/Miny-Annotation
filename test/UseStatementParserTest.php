@@ -81,4 +81,19 @@ class UseStatementParserTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals($uses, $parser->getImports());
     }
+
+    public function testCommentInUseStatements()
+    {
+        $source = '<?php namespace Foo;
+        use /** @noinspection PhpUnusedAliasInspection */
+        Foo\Bar as Foobar; use Bar\Baz;';
+        $parser = new UseStatementParser($source);
+
+        $uses = array(
+            'Foobar' => 'Foo\Bar',
+            'Baz'    => 'Bar\Baz'
+        );
+
+        $this->assertEquals($uses, $parser->getImports());
+    }
 }
