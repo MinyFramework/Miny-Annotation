@@ -40,7 +40,7 @@ class UseStatementParser
 
     public function getImports()
     {
-        $imports = array();
+        $imports = [];
         $this->getNamespace();
 
         $first = true;
@@ -57,13 +57,13 @@ class UseStatementParser
             $this->skip(T_WHITESPACE, T_COMMENT, T_DOC_COMMENT, T_NS_SEPARATOR);
 
             $fqn       = $this->parseClassName();
-            $shortName = $this->tokens[$this->position - 1][1];
+            $shortName = $this->tokens[ $this->position - 1 ][1];
 
             $this->skip(T_WHITESPACE);
             if ($this->match(T_AS) && $this->match(T_WHITESPACE)) {
                 $shortName = $this->getCurrentToken();
             }
-            $imports[$shortName] = $fqn;
+            $imports[ $shortName ] = $fqn;
         }
 
         return $imports;
@@ -72,7 +72,7 @@ class UseStatementParser
     private function skip()
     {
         $tokens = func_get_args();
-        while (in_array($this->tokens[$this->position][0], $tokens)) {
+        while (in_array($this->tokens[ $this->position ][0], $tokens)) {
             $this->step();
         }
     }
@@ -86,7 +86,7 @@ class UseStatementParser
         if (!$this->valid()) {
             return false;
         }
-        $current = $this->tokens[$this->position];
+        $current = $this->tokens[ $this->position ];
         if ($current === $token) {
             $this->step();
 
@@ -114,7 +114,7 @@ class UseStatementParser
      */
     private function getCurrentToken()
     {
-        return $this->tokens[$this->position++][1];
+        return $this->tokens[ $this->position++ ][1];
     }
 
     /**
@@ -122,7 +122,7 @@ class UseStatementParser
      */
     private function valid()
     {
-        return isset($this->tokens[$this->position]);
+        return isset($this->tokens[ $this->position ]);
     }
 
     private function parseClassName()

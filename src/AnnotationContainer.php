@@ -28,74 +28,74 @@ class AnnotationContainer
     /**
      * @var \ReflectionClass[]
      */
-    private $reflectors = array();
+    private $reflectors = [];
 
     public function __construct(AnnotationReader $reader)
     {
         $this->reader = $reader;
 
-        $this->annotations = array(
+        $this->annotations = [
             'Modules\\Annotation\\Annotations\\Attribute' => AnnotationMetadata::create(
-                    array(
-                        'defaultAttribute' => 'name',
-                        'attributes'       => array(
-                            'name'     => array(
-                                'required' => true,
-                                'type'     => 'string'
-                            ),
-                            'setter'   => array(
-                                'required' => false,
-                                'type'     => 'string'
-                            ),
-                            'type'     => array(
-                                'required' => false,
-                                'type'     => 'mixed'
-                            ),
-                            'nullable' => array(
-                                'required' => false,
-                                'type'     => 'bool'
-                            ),
-                            'required' => array(
-                                'required' => false,
-                                'type'     => 'bool'
-                            )
-                        ),
-                        'target'           => Target::TARGET_CLASS
-                    )
-                ),
+                [
+                    'defaultAttribute' => 'name',
+                    'attributes'       => [
+                        'name'     => [
+                            'required' => true,
+                            'type'     => 'string'
+                        ],
+                        'setter'   => [
+                            'required' => false,
+                            'type'     => 'string'
+                        ],
+                        'type'     => [
+                            'required' => false,
+                            'type'     => 'mixed'
+                        ],
+                        'nullable' => [
+                            'required' => false,
+                            'type'     => 'bool'
+                        ],
+                        'required' => [
+                            'required' => false,
+                            'type'     => 'bool'
+                        ]
+                    ],
+                    'target'           => Target::TARGET_CLASS
+                ]
+            ),
             'Modules\\Annotation\\Annotations\\Enum'      => AnnotationMetadata::create(
-                    array(
-                        'defaultAttribute' => 'values',
-                        'attributes'       => array(
-                            'values' => array(
-                                'required' => true,
-                                'type'     => array()
-                            )
-                        ),
-                        'target'           => Target::TARGET_ANNOTATION
-                    )
-                ),
+                [
+                    'defaultAttribute' => 'values',
+                    'attributes'       => [
+                        'values' => [
+                            'required' => true,
+                            'type'     => []
+                        ]
+                    ],
+                    'target'           => Target::TARGET_ANNOTATION
+                ]
+            ),
             'Modules\\Annotation\\Annotations\\Target'    => AnnotationMetadata::create(
-                    array(
-                        'defaultAttribute' => 'target',
-                        'constructor'      => array(
-                            'target'
-                        ),
-                        'attributes'       => array(
-                            'target' => array(
-                                'required' => true,
-                                'type'     => 'mixed'
-                            )
-                        ),
-                        'target'           => Target::TARGET_CLASS
-                    )
-                )
-        );
+                [
+                    'defaultAttribute' => 'target',
+                    'constructor'      => [
+                        'target'
+                    ],
+                    'attributes'       => [
+                        'target' => [
+                            'required' => true,
+                            'type'     => 'mixed'
+                        ]
+                    ],
+                    'target'           => Target::TARGET_CLASS
+                ]
+            )
+        ];
     }
 
     public function registerAnnotation($class, array $metadata)
     {
-        $this->annotations[$class] = AnnotationMetadata::create($metadata);
+        $this->annotations[ $class ] = AnnotationMetadata::create($metadata);
     }
 
     /**
@@ -108,18 +108,18 @@ class AnnotationContainer
         if (is_object($class)) {
             $class = get_class($class);
         }
-        if (!isset($this->reflectors[$class])) {
-            $this->reflectors[$class] = new \ReflectionClass($class);
+        if (!isset($this->reflectors[ $class ])) {
+            $this->reflectors[ $class ] = new \ReflectionClass($class);
         }
 
-        return $this->reflectors[$class];
+        return $this->reflectors[ $class ];
     }
 
     private function createAnnotationMetadataInstance(\ReflectionClass $reflector)
     {
         $parent = $reflector->getParentClass();
         if ($parent) {
-            $this->reflectors[$parent->getName()] = $parent;
+            $this->reflectors[ $parent->getName() ] = $parent;
 
             $metadata = $this->readClassMetadata($parent->getName(), true);
         } else {
@@ -139,7 +139,7 @@ class AnnotationContainer
      */
     private function readClassMetadata($class, $isParent = false)
     {
-        if (!isset($this->annotations[$class])) {
+        if (!isset($this->annotations[ $class ])) {
             $reflector = $this->getClassReflector($class);
             $metadata  = $this->createAnnotationMetadataInstance($reflector);
             $comment   = $this->reader->readClass($class);
@@ -156,10 +156,10 @@ class AnnotationContainer
             $this->collectDefaultAttributeMetadata($comment, $metadata);
             $this->getConstructorInfo($reflector, $metadata);
 
-            $this->annotations[$class] = $metadata;
+            $this->annotations[ $class ] = $metadata;
         }
 
-        return $this->annotations[$class];
+        return $this->annotations[ $class ];
     }
 
     /**
@@ -175,7 +175,7 @@ class AnnotationContainer
         }
         foreach ($comment->getAnnotationType($attributeClassName) as $annotation) {
             /** @var $annotation Attribute */
-            $metadata->attributes[$annotation->name] = $annotation->toArray();
+            $metadata->attributes[ $annotation->name ] = $annotation->toArray();
         }
     }
 
@@ -222,16 +222,16 @@ class AnnotationContainer
             return;
         }
 
-        $metadata->constructor = array();
+        $metadata->constructor = [];
         foreach ($constructor->getParameters() as $parameter) {
             $name = $parameter->getName();
-            if (!isset($metadata->attributes[$name])) {
-                $metadata->attributes[$name] = Attribute::getDefaults();
+            if (!isset($metadata->attributes[ $name ])) {
+                $metadata->attributes[ $name ] = Attribute::getDefaults();
             }
 
             $metadata->constructor[] = $name;
             if (!$parameter->allowsNull() && !$parameter->isDefaultValueAvailable()) {
-                $metadata->attributes[$name]['required'] = true;
+                $metadata->attributes[ $name ]['required'] = true;
             }
         }
     }
@@ -269,12 +269,12 @@ class AnnotationContainer
     {
         //instantiate annotation class
         if (is_array($metadata->constructor)) {
-            $arguments = array();
+            $arguments = [];
             //$metadata->constructor has the constructor parameter names in order
             foreach ($metadata->constructor as $key) {
-                if (isset($attributes[$key])) {
-                    $arguments[$key] = $attributes[$key];
-                    unset($attributes[$key]);
+                if (isset($attributes[ $key ])) {
+                    $arguments[ $key ] = $attributes[ $key ];
+                    unset($attributes[ $key ]);
                 }
             }
             $annotation = $this->getClassReflector($class)->newInstanceArgs($arguments);
@@ -283,8 +283,8 @@ class AnnotationContainer
         }
 
         foreach ($attributes as $key => $value) {
-            if (isset($metadata->attributes[$key]['setter'])) {
-                $annotation->{$metadata->attributes[$key]['setter']}($value);
+            if (isset($metadata->attributes[ $key ]['setter'])) {
+                $annotation->{$metadata->attributes[ $key ]['setter']}($value);
             } else {
                 $annotation->$key = $value;
             }
@@ -305,18 +305,18 @@ class AnnotationContainer
     {
         foreach ($attributes as $name => $value) {
             if (!is_string($name)) {
-                unset($attributes[$name]);
-                $attributes[$metadata->defaultAttribute] = $value;
+                unset($attributes[ $name ]);
+                $attributes[ $metadata->defaultAttribute ] = $value;
             }
         }
         foreach ($attributes as $name => $value) {
-            if (!isset($metadata->attributes[$name])) {
+            if (!isset($metadata->attributes[ $name ])) {
                 throw new AnnotationException("Unknown attribute: {$name}");
             }
-            if ($value === null && $metadata->attributes[$name]['nullable']) {
+            if ($value === null && $metadata->attributes[ $name ]['nullable']) {
                 continue;
             }
-            Attribute::checkType($name, $value, $metadata->attributes[$name]['type']);
+            Attribute::checkType($name, $value, $metadata->attributes[ $name ]['type']);
         }
 
         $unsetAttributes = array_diff_key($metadata->attributes, $attributes);

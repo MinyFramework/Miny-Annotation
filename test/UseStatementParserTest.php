@@ -39,7 +39,7 @@ class UseStatementParserTest extends \PHPUnit_Framework_TestCase
         $source = '<?php namespace Foo;';
         $parser = new UseStatementParser($source);
 
-        $uses = array();
+        $uses = [];
 
         $this->assertEquals($uses, $parser->getImports());
     }
@@ -49,10 +49,10 @@ class UseStatementParserTest extends \PHPUnit_Framework_TestCase
         $source = '<?php namespace Foo; use Foo\Bar as Foobar; use Bar\Baz;';
         $parser = new UseStatementParser($source);
 
-        $uses = array(
+        $uses = [
             'Foobar' => 'Foo\Bar',
             'Baz'    => 'Bar\Baz'
-        );
+        ];
 
         $this->assertEquals($uses, $parser->getImports());
     }
@@ -62,9 +62,9 @@ class UseStatementParserTest extends \PHPUnit_Framework_TestCase
         $source = '<?php namespace Foo; use Foo\Bar as Foobar; namespace Foobar; use Bar\Baz;';
         $parser = new UseStatementParser($source);
 
-        $uses = array(
+        $uses = [
             'Baz' => 'Bar\Baz'
-        );
+        ];
 
         $this->assertEquals($uses, $parser->getImports());
     }
@@ -74,10 +74,10 @@ class UseStatementParserTest extends \PHPUnit_Framework_TestCase
         $source = '<?php namespace Foo; use Foo\Bar as Foobar, Bar\Baz;';
         $parser = new UseStatementParser($source);
 
-        $uses = array(
+        $uses = [
             'Foobar' => 'Foo\Bar',
-            'Baz' => 'Bar\Baz'
-        );
+            'Baz'    => 'Bar\Baz'
+        ];
 
         $this->assertEquals($uses, $parser->getImports());
     }
@@ -89,10 +89,10 @@ class UseStatementParserTest extends \PHPUnit_Framework_TestCase
         Foo\Bar as Foobar; use Bar\Baz;';
         $parser = new UseStatementParser($source);
 
-        $uses = array(
+        $uses = [
             'Foobar' => 'Foo\Bar',
             'Baz'    => 'Bar\Baz'
-        );
+        ];
 
         $this->assertEquals($uses, $parser->getImports());
     }

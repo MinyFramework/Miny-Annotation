@@ -26,8 +26,8 @@ class AnnotationReader extends Reader
      */
     private $container;
 
-    private $imports = array();
-    private $namespaces = array();
+    private $imports          = [];
+    private $namespaces       = [];
     private $defaultNamespace = '';
 
     public function __construct()
@@ -66,7 +66,7 @@ class AnnotationReader extends Reader
         );
         $this->parser->setNamespaces(
             $this->defaultNamespace,
-            $this->namespaces[$filename]
+            $this->namespaces[ $filename ]
         );
 
         return $this->parser->parse(
@@ -110,16 +110,16 @@ class AnnotationReader extends Reader
     private function getImports($fileName, $startLine)
     {
         $key = $fileName . $startLine;
-        if (!isset($this->imports[$key])) {
+        if (!isset($this->imports[ $key ])) {
             $parser = new UseStatementParser(
                 $this->getLines($fileName, $startLine)
             );
 
-            $this->imports[$key]         = $parser->getImports();
-            $this->namespaces[$fileName] = $parser->getNamespace();
+            $this->imports[ $key ]         = $parser->getImports();
+            $this->namespaces[ $fileName ] = $parser->getNamespace();
         }
 
-        return $this->imports[$key] + $this->getGlobalImports();
+        return $this->imports[ $key ] + $this->getGlobalImports();
     }
 
     public function setDefaultNamespace($namespace)
@@ -144,10 +144,10 @@ class AnnotationReader extends Reader
      */
     public function readMethods($class, $filter = \ReflectionMethod::IS_PUBLIC)
     {
-        $methods        = array();
+        $methods        = [];
         $classReflector = $this->container->getClassReflector($class);
         foreach ($classReflector->getMethods($filter) as $method) {
-            $methods[$method->getName()] = $this->process($method, 'method');
+            $methods[ $method->getName() ] = $this->process($method, 'method');
         }
 
         return $methods;
@@ -158,10 +158,10 @@ class AnnotationReader extends Reader
      */
     public function readProperties($class, $filter = \ReflectionProperty::IS_PUBLIC)
     {
-        $properties     = array();
+        $properties     = [];
         $classReflector = $this->container->getClassReflector($class);
         foreach ($classReflector->getProperties($filter) as $property) {
-            $properties[$property->getName()] = $this->process($property, 'property');
+            $properties[ $property->getName() ] = $this->process($property, 'property');
         }
 
         return $properties;

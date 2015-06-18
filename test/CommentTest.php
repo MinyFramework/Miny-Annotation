@@ -16,14 +16,14 @@ class CommentTest extends \PHPUnit_Framework_TestCase
     {
         $comment = new Comment('description');
         $comment->add('tag', null);
-        $comment->add('array', array('a', 'b'));
+        $comment->add('array', ['a', 'b']);
         $this->assertEquals('description', $comment->getDescription());
         $this->assertFalse($comment->has('random tag'));
         $this->assertTrue($comment->has('tag'));
         $this->assertTrue($comment->equals('tag', null));
         $this->assertTrue($comment->contains('array', 'a'));
-        $this->assertTrue($comment->containsAll('array', array('a', 'b')));
-        $this->assertFalse($comment->containsAll('array', array('a', 'c')));
+        $this->assertTrue($comment->containsAll('array', ['a', 'b']));
+        $this->assertFalse($comment->containsAll('array', ['a', 'c']));
     }
 
     public function testToString()
@@ -70,7 +70,7 @@ class CommentTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($comment->hasAnnotationType('someclass'));
 
         $this->assertEquals(
-            array('whatever', 'also whatever'),
+            ['whatever', 'also whatever'],
             $comment->getAnnotationType('someclass')
         );
     }

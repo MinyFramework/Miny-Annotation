@@ -29,7 +29,7 @@ class AnnotationParser
     private $defaultNamespace;
 
     //state stack
-    private $stack = array();
+    private $stack = [];
 
     public function __construct(AnnotationContainer $container)
     {
@@ -84,19 +84,19 @@ class AnnotationParser
         $this->parts    = preg_split($pattern, $parts[1], -1, $flags);
         $this->position = -1;
 
-        while (isset($this->parts[++$this->position])) {
-            if ($this->parts[$this->position] === '@') {
+        while (isset($this->parts[ ++$this->position ])) {
+            if ($this->parts[ $this->position ] === '@') {
                 list($name, $parameters, $isClass) = $this->parseTag();
                 if ($isClass) {
                     $className = $this->getFullyQualifiedName($name);
 
-                    $this->stack[] = array(
+                    $this->stack[] = [
                         $this->parts,
                         $this->position,
                         $this->imports,
                         $this->defaultNamespace,
                         $this->currentNamespace
-                    );
+                    ];
                     $comment->addAnnotation(
                         $className,
                         $this->container->readClass($className, $parameters, $target)
@@ -118,16 +118,16 @@ class AnnotationParser
 
     private function parseTag()
     {
-        $return = array(
-            $this->parts[++$this->position]
-        );
-        if ($this->parts[++$this->position] === '(') {
+        $return = [
+            $this->parts[ ++$this->position ]
+        ];
+        if ($this->parts[ ++$this->position ] === '(') {
             $return[1] = $this->parseList(')');
             $return[2] = true;
         } else {
             $parameters = '';
-            while (isset($this->parts[++$this->position])) {
-                $part = $this->parts[$this->position];
+            while (isset($this->parts[ ++$this->position ])) {
+                $part = $this->parts[ $this->position ];
                 if ($part === '{') {
                     $parameters = $this->parseList('}');
                 } elseif (is_string($parameters)) {
@@ -202,13 +202,17 @@ class AnnotationParser
         }
     }
 
+    /**
+     * @param string $closing The closing character
+     * @return array
+     */
     private function parseList($closing)
     {
-        $array        = array();
+        $array        = [];
         $currentKey   = null;
         $currentValue = null;
-        while (isset($this->parts[++$this->position])) {
-            switch ($this->parts[$this->position]) {
+        while (isset($this->parts[ ++$this->position ])) {
+            switch ($this->parts[ $this->position ]) {
                 case '{':
                     if (isset($currentValue)) {
                         throw new SyntaxException('Unexpected { found.');
@@ -222,7 +226,7 @@ class AnnotationParser
                     }
                     $currentValue = $this->getValue($currentValue);
                     if (isset($currentKey)) {
-                        $array[$currentKey] = $currentValue;
+                        $array[ $currentKey ] = $currentValue;
                     } else {
                         $array[] = $currentValue;
                     }
@@ -245,7 +249,7 @@ class AnnotationParser
                     if (isset($currentValue)) {
                         $currentValue = $this->getValue($currentValue);
                         if (isset($currentKey)) {
-                            $array[$currentKey] = $currentValue;
+                            $array[ $currentKey ] = $currentValue;
                         } else {
                             $array[] = $currentValue;
                         }
@@ -266,13 +270,13 @@ class AnnotationParser
                     break;
 
                 default:
-                    if (ctype_space($this->parts[$this->position])) {
+                    if (ctype_space($this->parts[ $this->position ])) {
                         continue;
                     }
                     if (isset($currentValue)) {
                         throw new SyntaxException('Unexpected data found');
                     }
-                    $currentValue = $this->parts[$this->position];
+                    $currentValue = $this->parts[ $this->position ];
                     break;
             }
         }
@@ -302,17 +306,17 @@ class AnnotationParser
         }
 
         //if not, check imports
-        if (isset($this->imports[$class])) {
+        if (isset($this->imports[ $class ])) {
             //determine if class is aliased directly
-            $class = $this->imports[$class];
+            $class = $this->imports[ $class ];
 
         } elseif (($nsDelimiter = strpos($class, '\\')) !== false) {
             //if not, determine if class is part of one of the imported namespaces
             $namespace = substr($class, 0, $nsDelimiter);
-            if (!isset($this->imports[$namespace])) {
+            if (!isset($this->imports[ $namespace ])) {
                 throw new \InvalidArgumentException("Class {$class} is not found");
             }
-            $class = $this->imports[$namespace] . substr($class, $nsDelimiter);
+            $class = $this->imports[ $namespace ] . substr($class, $nsDelimiter);
         }
 
         //if class still doesn't exist, throw exception

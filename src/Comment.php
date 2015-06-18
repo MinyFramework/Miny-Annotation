@@ -22,12 +22,12 @@ class Comment implements ArrayAccess
     /**
      * @var array
      */
-    private $tags = array();
+    private $tags = [];
 
     /**
      * @var array
      */
-    private $annotations = array();
+    private $annotations = [];
 
     public function __construct($description)
     {
@@ -41,7 +41,7 @@ class Comment implements ArrayAccess
 
     public function add($tag, $value = null)
     {
-        $this->tags[$tag] = $value;
+        $this->tags[ $tag ] = $value;
     }
 
     public function has($tag)
@@ -55,7 +55,7 @@ class Comment implements ArrayAccess
             throw new OutOfBoundsException("Comment does not have @{$tag} annotation.");
         }
 
-        return $this->tags[$tag];
+        return $this->tags[ $tag ];
     }
 
     public function equals($tag, $value)
@@ -97,7 +97,7 @@ class Comment implements ArrayAccess
 
     public function offsetUnset($offset)
     {
-        unset($this->tags[$offset]);
+        unset($this->tags[ $offset ]);
     }
 
     /**
@@ -106,10 +106,10 @@ class Comment implements ArrayAccess
      */
     public function addAnnotation($className, $annotation)
     {
-        if (!isset($this->annotations[$className])) {
-            $this->annotations[$className] = array();
+        if (!isset($this->annotations[ $className ])) {
+            $this->annotations[ $className ] = [];
         }
-        $this->annotations[$className][] = $annotation;
+        $this->annotations[ $className ][] = $annotation;
     }
 
     /**
@@ -126,7 +126,7 @@ class Comment implements ArrayAccess
      */
     public function hasAnnotationType($class)
     {
-        return isset($this->annotations[$class]);
+        return isset($this->annotations[ $class ]);
     }
 
     /**
@@ -138,10 +138,10 @@ class Comment implements ArrayAccess
      */
     public function getAnnotationType($class)
     {
-        if (!isset($this->annotations[$class])) {
+        if (!isset($this->annotations[ $class ])) {
             throw new \OutOfBoundsException("Annotation not set with type {$class}");
         }
 
-        return $this->annotations[$class];
+        return $this->annotations[ $class ];
     }
 }

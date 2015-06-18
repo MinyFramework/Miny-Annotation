@@ -11,11 +11,11 @@ namespace Modules\Annotation;
 
 abstract class Reader
 {
-    private $globalImports = array(
+    private $globalImports = [
         'Attribute' => 'Modules\\Annotation\\Annotations\\Attribute',
         'Enum'      => 'Modules\\Annotation\\Annotations\\Enum',
         'Target'    => 'Modules\\Annotation\\Annotations\\Target'
-    );
+    ];
 
     /**
      * @param       $class
@@ -82,7 +82,7 @@ abstract class Reader
         if ($class === null) {
             $class = substr($fqn, strrpos($fqn, '\\'));
         }
-        $this->globalImports[$class] = $fqn;
+        $this->globalImports[ $class ] = $fqn;
     }
 
     public function getGlobalImports()

@@ -14,9 +14,9 @@ use Modules\Annotation\Annotations\Target;
 class AnnotationMetadata
 {
     public $constructor = false;
-    public $target = Target::TARGET_CLASS;
+    public $target      = Target::TARGET_CLASS;
     public $defaultAttribute;
-    public $attributes = array();
+    public $attributes  = [];
 
     public static function create(array $properties)
     {

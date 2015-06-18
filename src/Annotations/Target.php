@@ -18,26 +18,26 @@ class Target
     const TARGET_ANNOTATION = 16;
     const TARGET_ALL        = 31;
 
-    private static $map = array(
+    private static $map = [
         'class'      => self::TARGET_CLASS,
         'method'     => self::TARGET_METHOD,
         'property'   => self::TARGET_PROPERTY,
         'function'   => self::TARGET_FUNCTION,
         'annotation' => self::TARGET_ANNOTATION,
         'all'        => self::TARGET_ALL
-    );
+    ];
 
     public static function getTargetValue($targets)
     {
         if (!is_array($targets)) {
             self::enforceValidTarget($targets);
-            $targets = array($targets);
+            $targets = [$targets];
         }
 
         $mask = 0;
         foreach ($targets as $target) {
             self::enforceValidTarget($target);
-            $mask |= self::$map[$target];
+            $mask |= self::$map[ $target ];
         }
 
         return $mask;
@@ -60,7 +60,7 @@ class Target
         if (!is_string($target)) {
             throw new \InvalidArgumentException('Parameter $type must be a string.');
         }
-        if (!isset(self::$map[$target])) {
+        if (!isset(self::$map[ $target ])) {
             throw new \InvalidArgumentException("Type {$target} is invalid.");
         }
     }

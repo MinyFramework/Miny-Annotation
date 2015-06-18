@@ -54,9 +54,9 @@ class Attribute
             default:
                 if ($type instanceof Enum) {
                     $type->checkValue($name, $value);
-                } elseif (is_array($type)) {
+                } else if (is_array($type)) {
                     self::checkArrayType($name, $value, $type);
-                } elseif (!$value instanceof $type) {
+                } else if (!$value instanceof $type) {
                     throw new AnnotationException("Attribute {$name} must be an instance of {$type}");
                 }
                 break;
@@ -72,28 +72,27 @@ class Attribute
 
             case 1:
                 foreach ($value as $key => $val) {
-                    self::checkType($name . "[{$key}]", $value[$key], $type[0]);
+                    self::checkType("{$name}[{$key}]", $value[ $key ], $type[0]);
                 }
                 break;
 
             case count($value):
                 foreach ($type as $key => $expected) {
-                    self::checkType($name . "[{$key}]", $value[$key], $expected);
+                    self::checkType("{$name}[{$key}]", $value[ $key ], $expected);
                 }
                 break;
 
             default:
                 throw new AnnotationException("Attribute {$name} must be an array with {$count} elements.");
-                break;
         }
     }
 
-    private static $default = array(
+    private static $default = [
         'required' => false,
         'type'     => 'mixed',
         'setter'   => null,
         'nullable' => false
-    );
+    ];
 
     public static function getDefaults()
     {
@@ -101,18 +100,18 @@ class Attribute
     }
 
     public $name;
-    public $type = 'mixed';
+    public $type     = 'mixed';
     public $setter;
     public $nullable = false;
     public $required = false;
 
     public function toArray()
     {
-        return array(
+        return [
             'required' => $this->required,
             'type'     => $this->type,
             'setter'   => $this->setter,
             'nullable' => $this->nullable
-        );
+        ];
     }
 }

@@ -14,8 +14,8 @@ namespace Modules\Annotation;
 class FooAnnotation
 {
     const BAR = 'foobar';
-    public $value;
-    public $enum;
+    public  $value;
+    public  $enum;
     private $named;
 
     public function setNamed($named)
@@ -206,12 +206,12 @@ class AnnotationReaderTest extends \PHPUnit_Framework_TestCase
     public function testReadProperties()
     {
         $result = $this->object->readProperties('Modules\Annotation\TestClass');
-        $this->assertEquals(array('property'), array_keys($result));
+        $this->assertEquals(['property'], array_keys($result));
     }
 
     public function testReadMethods()
     {
         $result = $this->object->readMethods('Modules\Annotation\TestClass');
-        $this->assertEquals(array('method'), array_keys($result));
+        $this->assertEquals(['method'], array_keys($result));
     }
 }

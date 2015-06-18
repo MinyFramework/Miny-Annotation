@@ -13,75 +13,75 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
     {
         $this->object = new AnnotationParser(
             $this->getMockBuilder('\\Modules\\Annotation\\AnnotationContainer')
-                ->disableOriginalConstructor()
-                ->getMock()
+                 ->disableOriginalConstructor()
+                 ->getMock()
         );
     }
 
     public function annotationProvider()
     {
-        return array(
-            array(
+        return [
+            [
                 '/** */',
                 '',
-                array()
-            ),
-            array(
+                []
+            ],
+            [
                 '/** no annotations */',
                 'no annotations',
-                array()
-            ),
-            array(
+                []
+            ],
+            [
                 '/**
                   * multiline
                   */',
                 'multiline',
-                array()
-            ),
-            array(
+                []
+            ],
+            [
                 '/** @something */',
                 '',
-                array(
+                [
                     'something' => true
-                )
-            ),
-            array(
+                ]
+            ],
+            [
                 '/** @something UTTERLY_WEIRD */',
                 '',
-                array(
+                [
                     'something' => 'UTTERLY_WEIRD'
-                )
-            ),
-            array(
+                ]
+            ],
+            [
                 '/**
                 @something with multiple words in a line
                 @another
                 */',
                 '',
-                array(
+                [
                     'something' => 'with multiple words in a line',
                     'another'   => true
-                )
-            ),
-            array(
+                ]
+            ],
+            [
                 '/** description
                    * @something weird */',
                 'description',
-                array(
+                [
                     'something' => 'weird'
-                )
-            ),
-            array(
+                ]
+            ],
+            [
                 '/** @tag {"with", "array"} */',
                 '',
-                array(
-                    'tag' => array(
+                [
+                    'tag' => [
                         'with',
                         'array'
-                    )
-                )
-            ),
-        );
+                    ]
+                ]
+            ],
+        ];
     }
 
     /**
