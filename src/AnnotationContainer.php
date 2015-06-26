@@ -58,6 +58,10 @@ class AnnotationContainer
                         'required' => [
                             'required' => false,
                             'type'     => 'bool'
+                        ],
+                        'default'  => [
+                            'required' => false,
+                            'type'     => 'mixed'
                         ]
                     ],
                     'target'           => Target::TARGET_CLASS
@@ -230,8 +234,15 @@ class AnnotationContainer
             }
 
             $metadata->constructor[] = $name;
-            if (!$parameter->allowsNull() && !$parameter->isDefaultValueAvailable()) {
-                $metadata->attributes[ $name ]['required'] = true;
+            if ($metadata->attributes[ $name ]['default'] === null) {
+                if ($parameter->isDefaultValueAvailable()) {
+                    $metadata->attributes[ $name ]['default']  = $parameter->getDefaultValue();
+                    $metadata->attributes[ $name ]['required'] = false;
+                } else if (!$parameter->allowsNull()) {
+                    $metadata->attributes[ $name ]['required'] = true;
+                }
+            } else {
+                $metadata->attributes[ $name ]['required'] = false;
             }
         }
     }
@@ -271,8 +282,10 @@ class AnnotationContainer
         if (is_array($metadata->constructor)) {
             $arguments = [];
             //$metadata->constructor has the constructor parameter names in order
-            foreach ($metadata->constructor as $key) {
-                if (isset($attributes[ $key ])) {
+            foreach ($metadata->constructor as $i => $key) {
+                if (!isset($attributes[ $key ])) {
+                    $arguments[ $key ] = $metadata->attributes[ $key ]['default'];
+                } else {
                     $arguments[ $key ] = $attributes[ $key ];
                     unset($attributes[ $key ]);
                 }

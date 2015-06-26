@@ -31,6 +31,25 @@ class FooAnnotation
 
 /**
  * @Annotation
+ * @DefaultAttribute v2
+ * @Attribute('v1', default: 8)
+ * @Attribute('v2')
+ * @Target('class')
+ */
+class ConstructorAnnotation
+{
+    public $v1;
+    public $v2;
+
+    public function __construct($v1 = 5, $v2 = 6)
+    {
+        $this->v1 = $v1;
+        $this->v2 = $v2;
+    }
+}
+
+/**
+ * @Annotation
  * @Attribute('simple', type: {'string'})
  * @Attribute('complex', type: {{'string', 'int'}})
  */
@@ -52,6 +71,8 @@ class InheritedAnnotation extends ArrayAnnotation
  * @see foo
  * @FooAnnotation('foo', named: 'foobar', enum: 'bar', array: {'string', 2})
  * @FooAnnotation(value: FooAnnotation::BAR)
+ * @ConstructorAnnotation(v2: 'something')
+ * @ConstructorAnnotation()
  */
 class TestClass
 {
@@ -139,6 +160,12 @@ class AnnotationReaderTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('foo', $annotations[0]->value);
         $this->assertEquals('foobar', $annotations[1]->value);
         $this->assertEquals('foobar', $annotations[0]->getNamed());
+
+        $annotations = $comment->getAnnotationType('Modules\\Annotation\\ConstructorAnnotation');
+        $this->assertEquals(8, $annotations[0]->v1);
+        $this->assertEquals('something', $annotations[0]->v2);
+        $this->assertEquals(8, $annotations[1]->v1);
+        $this->assertEquals(6, $annotations[1]->v2);
     }
 
     public function testArrays()

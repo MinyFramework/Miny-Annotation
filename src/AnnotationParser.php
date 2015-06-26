@@ -237,7 +237,7 @@ class AnnotationParser
                     if (!isset($currentValue)) {
                         throw new SyntaxException('Unexpected : found.');
                     }
-                    if (!ctype_alpha($currentValue)) {
+                    if (!ctype_alnum($currentValue)) {
                         throw new SyntaxException('Keys must be alphanumeric.');
                     }
 

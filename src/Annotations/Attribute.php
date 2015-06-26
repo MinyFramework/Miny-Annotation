@@ -87,16 +87,17 @@ class Attribute
         }
     }
 
-    private static $default = [
+    private static $defaults = [
         'required' => false,
         'type'     => 'mixed',
         'setter'   => null,
-        'nullable' => false
+        'nullable' => false,
+        'default'  => null
     ];
 
     public static function getDefaults()
     {
-        return static::$default;
+        return static::$defaults;
     }
 
     public $name;
@@ -104,6 +105,7 @@ class Attribute
     public $setter;
     public $nullable = false;
     public $required = false;
+    public $default;
 
     public function toArray()
     {
@@ -111,7 +113,8 @@ class Attribute
             'required' => $this->required,
             'type'     => $this->type,
             'setter'   => $this->setter,
-            'nullable' => $this->nullable
+            'nullable' => $this->nullable,
+            'default'  => $this->default
         ];
     }
 }
