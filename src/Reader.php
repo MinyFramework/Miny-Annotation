@@ -5,9 +5,9 @@ namespace Annotiny;
 abstract class Reader
 {
     private $globalImports = [
-        'Attribute' => __NAMESPACE__ . '\Annotations\Attribute',
-        'Enum'      => __NAMESPACE__ . '\Annotations\Enum',
-        'Target'    => __NAMESPACE__ . '\Annotations\Target'
+        'Attribute' => 'Annotiny\Annotations\Attribute',
+        'Enum'      => 'Annotiny\Annotations\Enum',
+        'Target'    => 'Annotiny\Annotations\Target'
     ];
 
     /**
