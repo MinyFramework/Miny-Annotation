@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Annotation;
+namespace Annotiny;
 
 /**
  * @Annotation
@@ -68,6 +68,7 @@ class InheritedAnnotation extends ArrayAnnotation
 
 /**
  * Test class.
+ *
  * @see foo
  * @FooAnnotation('foo', named: 'foobar', enum: 'bar', array: {'string', 2})
  * @FooAnnotation(value: FooAnnotation::BAR)
@@ -152,16 +153,16 @@ class AnnotationReaderTest extends \PHPUnit_Framework_TestCase
 
     public function testReadClass()
     {
-        $comment = $this->object->readClass('Modules\Annotation\TestClass');
-        $this->assertInstanceOf('Modules\Annotation\Comment', $comment);
-        $this->assertTrue($comment->hasAnnotationType('Modules\\Annotation\\FooAnnotation'));
-        $annotations = $comment->getAnnotationType('Modules\\Annotation\\FooAnnotation');
+        $comment = $this->object->readClass(__NAMESPACE__ . '\TestClass');
+        $this->assertInstanceOf(__NAMESPACE__ . '\Comment', $comment);
+        $this->assertTrue($comment->hasAnnotationType(__NAMESPACE__ . '\FooAnnotation'));
+        $annotations = $comment->getAnnotationType(__NAMESPACE__ . '\FooAnnotation');
         $this->assertEquals('foo', $comment->get('see'));
         $this->assertEquals('foo', $annotations[0]->value);
         $this->assertEquals('foobar', $annotations[1]->value);
         $this->assertEquals('foobar', $annotations[0]->getNamed());
 
-        $annotations = $comment->getAnnotationType('Modules\\Annotation\\ConstructorAnnotation');
+        $annotations = $comment->getAnnotationType(__NAMESPACE__ . '\ConstructorAnnotation');
         $this->assertEquals(8, $annotations[0]->v1);
         $this->assertEquals('something', $annotations[0]->v2);
         $this->assertEquals(8, $annotations[1]->v1);
@@ -170,75 +171,75 @@ class AnnotationReaderTest extends \PHPUnit_Framework_TestCase
 
     public function testArrays()
     {
-        $this->object->readClass('Modules\Annotation\SimpleArray');
-        $this->object->readClass('Modules\Annotation\ComplexArray');
+        $this->object->readClass(__NAMESPACE__ . '\SimpleArray');
+        $this->object->readClass(__NAMESPACE__ . '\ComplexArray');
     }
 
     /**
-     * @expectedException \Modules\Annotation\Exceptions\AnnotationException
+     * @expectedException \Annotiny\Exceptions\AnnotationException
      */
     public function testArrayTypeExceptions()
     {
-        $this->object->readClass('Modules\Annotation\InvalidSimpleArray');
+        $this->object->readClass(__NAMESPACE__ . '\InvalidSimpleArray');
     }
 
     /**
-     * @expectedException \Modules\Annotation\Exceptions\AnnotationException
+     * @expectedException \Annotiny\Exceptions\AnnotationException
      */
     public function testArrayComplexTypeExceptions()
     {
-        $this->object->readClass('Modules\Annotation\InvalidComplexArray');
+        $this->object->readClass(__NAMESPACE__ . '\InvalidComplexArray');
     }
 
     /**
-     * @expectedException \Modules\Annotation\Exceptions\AnnotationException
+     * @expectedException \Annotiny\Exceptions\AnnotationException
      */
     public function testExceptionIsThrownWhenValueIsNotInEnum()
     {
-        $this->object->readClass('Modules\Annotation\WrongEnumValueClass');
+        $this->object->readClass(__NAMESPACE__ . '\WrongEnumValueClass');
     }
 
     /**
-     * @expectedException \Modules\Annotation\Exceptions\AnnotationException
+     * @expectedException \Annotiny\Exceptions\AnnotationException
      */
     public function testExceptionIsThrownWhenRequiredParamIsNotSet()
     {
-        $this->object->readClass('Modules\Annotation\MissingAnnotationParameterClass');
+        $this->object->readClass(__NAMESPACE__ . '\MissingAnnotationParameterClass');
     }
 
     public function testReadFunction()
     {
         $this->assertInstanceOf(
-            'Modules\Annotation\Comment',
-            $this->object->readFunction('Modules\Annotation\fooFunction')
+            __NAMESPACE__ . '\Comment',
+            $this->object->readFunction(__NAMESPACE__ . '\fooFunction')
         );
     }
 
     public function testReadMethod()
     {
         $this->assertInstanceOf(
-            'Modules\Annotation\Comment',
-            $this->object->readMethod('Modules\Annotation\TestClass', 'method')
+            __NAMESPACE__ . '\Comment',
+            $this->object->readMethod(__NAMESPACE__ . '\TestClass', 'method')
         );
     }
 
     public function testReadProperty()
     {
         $this->assertInstanceOf(
-            'Modules\Annotation\Comment',
-            $this->object->readProperty('Modules\Annotation\TestClass', 'property')
+            __NAMESPACE__ . '\Comment',
+            $this->object->readProperty(__NAMESPACE__ . '\TestClass', 'property')
         );
     }
 
     public function testReadProperties()
     {
-        $result = $this->object->readProperties('Modules\Annotation\TestClass');
+        $result = $this->object->readProperties(__NAMESPACE__ . '\TestClass');
         $this->assertEquals(['property'], array_keys($result));
     }
 
     public function testReadMethods()
     {
-        $result = $this->object->readMethods('Modules\Annotation\TestClass');
+        $result = $this->object->readMethods(__NAMESPACE__ . '\TestClass');
         $this->assertEquals(['method'], array_keys($result));
     }
 }

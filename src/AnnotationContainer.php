@@ -1,17 +1,10 @@
 <?php
 
-/**
- * This file is part of the Miny framework.
- * (c) Dániel Buga <bugadani@gmail.com>
- *
- * For licensing information see the LICENSE file.
- */
+namespace Annotiny;
 
-namespace Modules\Annotation;
-
-use Modules\Annotation\Annotations\Attribute;
-use Modules\Annotation\Annotations\Target;
-use Modules\Annotation\Exceptions\AnnotationException;
+use Annotiny\Annotations\Attribute;
+use Annotiny\Annotations\Target;
+use Annotiny\Exceptions\AnnotationException;
 
 class AnnotationContainer
 {
@@ -35,7 +28,7 @@ class AnnotationContainer
         $this->reader = $reader;
 
         $this->annotations = [
-            'Modules\\Annotation\\Annotations\\Attribute' => AnnotationMetadata::create(
+            __NAMESPACE__ . '\Annotations\Attribute' => AnnotationMetadata::create(
                 [
                     'defaultAttribute' => 'name',
                     'attributes'       => [
@@ -67,7 +60,7 @@ class AnnotationContainer
                     'target'           => Target::TARGET_CLASS
                 ]
             ),
-            'Modules\\Annotation\\Annotations\\Enum'      => AnnotationMetadata::create(
+            __NAMESPACE__ . '\Annotations\Enum'      => AnnotationMetadata::create(
                 [
                     'defaultAttribute' => 'values',
                     'attributes'       => [
@@ -79,7 +72,7 @@ class AnnotationContainer
                     'target'           => Target::TARGET_ANNOTATION
                 ]
             ),
-            'Modules\\Annotation\\Annotations\\Target'    => AnnotationMetadata::create(
+            __NAMESPACE__ . '\Annotations\Target'    => AnnotationMetadata::create(
                 [
                     'defaultAttribute' => 'target',
                     'constructor'      => [
@@ -173,7 +166,7 @@ class AnnotationContainer
     private function collectAttributeMetadata(Comment $comment, AnnotationMetadata $metadata)
     {
         //@Attribute annotations
-        $attributeClassName = 'Modules\\Annotation\\Annotations\\Attribute';
+        $attributeClassName = __NAMESPACE__ . '\Annotations\Attribute';
         if (!$comment->hasAnnotationType($attributeClassName)) {
             return;
         }
@@ -190,7 +183,7 @@ class AnnotationContainer
     private function collectTargetMetadata(Comment $comment, AnnotationMetadata $metadata)
     {
         //@Target
-        $targetClassName = 'Modules\\Annotation\\Annotations\\Target';
+        $targetClassName = __NAMESPACE__ . '\Annotations\Target';
         if (!$comment->hasAnnotationType($targetClassName)) {
             return;
         }

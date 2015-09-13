@@ -1,20 +1,13 @@
 <?php
 
-/**
- * This file is part of the Miny framework.
- * (c) Dániel Buga <bugadani@gmail.com>
- *
- * For licensing information see the LICENSE file.
- */
-
-namespace Modules\Annotation;
+namespace Annotiny;
 
 abstract class Reader
 {
     private $globalImports = [
-        'Attribute' => 'Modules\\Annotation\\Annotations\\Attribute',
-        'Enum'      => 'Modules\\Annotation\\Annotations\\Enum',
-        'Target'    => 'Modules\\Annotation\\Annotations\\Target'
+        'Attribute' => __NAMESPACE__ . '\Annotations\Attribute',
+        'Enum'      => __NAMESPACE__ . '\Annotations\Enum',
+        'Target'    => __NAMESPACE__ . '\Annotations\Target'
     ];
 
     /**

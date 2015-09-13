@@ -1,8 +1,8 @@
-[![Build Status](https://travis-ci.org/MinyFramework/Miny-Annotation.svg?branch=master)](https://travis-ci.org/MinyFramework/Miny-Annotation)
+[![Build Status](https://travis-ci.org/bugadani/Annotiny.svg?branch=master)](https://travis-ci.org/bugadani/Annotiny)
 
-Miny-Annotation
+Annotiny
 ========
-Miny-Annotation is a module for the Miny Framework designed to read and parse documentation comments.
+Annotiny is a small library designed to read and parse documentation comments.
 
 Usage
 --------
@@ -10,9 +10,9 @@ To create the Annotation object a suitable parser and Comment factory must be su
 separate to make the component extendable.
 
 ```
-$parser = new \Modules\Annotation\AnnotationParser(new \Modules\Annotation\AnnotationContainer);
-$factory = new \Modules\Annotation\CommentFactory;
-$annotation = new \Modules\Annotation\Annotation($parser, $factory);
+$parser = new \Annotiny\AnnotationParser(new \Modules\Annotation\AnnotationContainer);
+$factory = new \Annotiny\CommentFactory;
+$annotation = new \Annotiny\Annotation($parser, $factory);
 ```
 
 Annotation has four public methods: `readClass($class)`, `readFunction($function)`, `readMethod($class, $method)` and `readProperty($class, $property)`. These functions work as one would expect, e.g. `readMethod` reads and parses the documentation comment of a class or object method.

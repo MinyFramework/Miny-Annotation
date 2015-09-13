@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <phpunit
-        bootstrap="test/bootstrap.php"
+        bootstrap="vendor/autoload.php"
         backupGlobals="false"
         backupStaticAttributes="false"
         colors="true"
@@ -13,7 +13,7 @@
         syntaxCheck="false"
         >
     <testsuites>
-        <testsuite name="Miny Annotation Test Suite">
+        <testsuite name="Annotiny Test Suite">
             <directory>./test/</directory>
         </testsuite>
     </testsuites>

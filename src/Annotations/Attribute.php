@@ -1,15 +1,8 @@
 <?php
 
-/**
- * This file is part of the Miny framework.
- * (c) Dániel Buga <bugadani@gmail.com>
- *
- * For licensing information see the LICENSE file.
- */
+namespace Annotiny\Annotations;
 
-namespace Modules\Annotation\Annotations;
-
-use Modules\Annotation\Exceptions\AnnotationException;
+use Annotiny\Exceptions\AnnotationException;
 
 class Attribute
 {

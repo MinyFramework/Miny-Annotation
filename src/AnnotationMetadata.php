@@ -1,15 +1,8 @@
 <?php
 
-/**
- * This file is part of the Miny framework.
- * (c) Dániel Buga <bugadani@gmail.com>
- *
- * For licensing information see the LICENSE file.
- */
+namespace Annotiny;
 
-namespace Modules\Annotation;
-
-use Modules\Annotation\Annotations\Target;
+use Annotiny\Annotations\Target;
 
 class AnnotationMetadata
 {

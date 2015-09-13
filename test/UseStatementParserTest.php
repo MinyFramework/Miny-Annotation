@@ -1,12 +1,6 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Buga
- * Date: 2014.07.01.
- * Time: 17:05
- */
 
-namespace Modules\Annotation;
+namespace Annotiny;
 
 class UseStatementParserTest extends \PHPUnit_Framework_TestCase
 {

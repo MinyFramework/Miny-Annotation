@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Annotation\Exceptions;
+namespace Annotiny\Exceptions;
 
 class AnnotationException extends \UnexpectedValueException
 {
