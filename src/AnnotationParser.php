@@ -83,23 +83,12 @@ class AnnotationParser
                 if ($isClass) {
                     $className = $this->getFullyQualifiedName($name);
 
-                    $this->stack[] = [
-                        $this->parts,
-                        $this->position,
-                        $this->imports,
-                        $this->defaultNamespace,
-                        $this->currentNamespace
-                    ];
+                    $this->saveState();
                     $comment->addAnnotation(
                         $className,
                         $this->container->readClass($className, $parameters, $target)
                     );
-
-                    list($this->parts,
-                        $this->position,
-                        $this->imports,
-                        $this->defaultNamespace,
-                        $this->currentNamespace) = array_pop($this->stack);
+                    $this->restoreState();
                 } else {
                     $comment->add($name, $parameters);
                 }
@@ -255,11 +244,13 @@ class AnnotationParser
                     if (!$isClass) {
                         throw new \UnexpectedValueException('Inner annotations must be class type annotations');
                     }
+                    $this->saveState();
                     $currentValue = $this->container->readClass(
                         $this->getFullyQualifiedName($className),
                         $parameters,
                         'annotation'
                     );
+                    $this->restoreState();
                     break;
 
                 default:
@@ -318,5 +309,25 @@ class AnnotationParser
         }
 
         return $class;
+    }
+
+    public function saveState()
+    {
+        $this->stack[] = [
+            $this->parts,
+            $this->position,
+            $this->imports,
+            $this->defaultNamespace,
+            $this->currentNamespace
+        ];
+    }
+
+    public function restoreState()
+    {
+        list($this->parts,
+            $this->position,
+            $this->imports,
+            $this->defaultNamespace,
+            $this->currentNamespace) = array_pop($this->stack);
     }
 }
