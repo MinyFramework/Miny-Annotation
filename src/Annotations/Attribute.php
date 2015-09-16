@@ -12,6 +12,13 @@ class Attribute
             case 'mixed':
                 break;
 
+            case 'callback':
+            case 'callable':
+                if (!is_callable($value)) {
+                    throw new AnnotationException("Attribute {$name} must be callable");
+                }
+                break;
+
             case 'string':
                 if (!is_string($value)) {
                     throw new AnnotationException("Attribute {$name} must be a string");

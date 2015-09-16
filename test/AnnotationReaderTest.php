@@ -2,6 +2,12 @@
 
 namespace Annotiny;
 
+class CallableTestClass {
+    public static function method(){
+
+    }
+}
+
 /**
  * @Annotation
  * @DefaultAttribute value
@@ -9,6 +15,7 @@ namespace Annotiny;
  * @Attribute('named', setter: 'setNamed')
  * @Attribute('array', type: {'string', 'int'})
  * @Attribute('enum', type: @Enum({'foo', 'bar', 'foobar'}))
+ * @Attribute('callback', type: 'callable')
  * @Target('class')
  */
 class FooAnnotation
@@ -16,6 +23,7 @@ class FooAnnotation
     const BAR = 'foobar';
     public  $value;
     public  $enum;
+    public  $callback;
     private $named;
 
     public function setNamed($named)
@@ -71,7 +79,7 @@ class InheritedAnnotation extends ArrayAnnotation
  *
  * @see foo
  * @FooAnnotation('foo', named: 'foobar', enum: 'bar', array: {'string', 2})
- * @FooAnnotation(value: FooAnnotation::BAR)
+ * @FooAnnotation(value: FooAnnotation::BAR, callback: CallableTestClass::method)
  * @ConstructorAnnotation(v2: 'something')
  * @ConstructorAnnotation()
  */
@@ -129,6 +137,13 @@ class WrongEnumValueClass
  * @FooAnnotation(named: 'foo')
  */
 class MissingAnnotationParameterClass
+{
+}
+
+/**
+ * @FooAnnotation(value: 5, callback: 'foo')
+ */
+class NotCallableCallbackAttributeClass
 {
 }
 
@@ -205,6 +220,14 @@ class AnnotationReaderTest extends \PHPUnit_Framework_TestCase
     public function testExceptionIsThrownWhenRequiredParamIsNotSet()
     {
         $this->object->readClass(__NAMESPACE__ . '\MissingAnnotationParameterClass');
+    }
+
+    /**
+     * @expectedException \Annotiny\Exceptions\AnnotationException
+     */
+    public function testExceptionIsThrownWhenCallbackIsNotCallable()
+    {
+        $this->object->readClass(__NAMESPACE__ . '\NotCallableCallbackAttributeClass');
     }
 
     public function testReadFunction()

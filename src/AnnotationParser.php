@@ -165,13 +165,6 @@ class AnnotationParser
                 if (defined($currentValue)) {
                     return constant($currentValue);
                 }
-                if (strpos($currentValue, '::') !== false) {
-                    list($class, $constant) = explode('::', $currentValue, 2);
-                    $class = $this->getFullyQualifiedName($class);
-                    if (defined($class . '::' . $constant)) {
-                        return constant($class . '::' . $constant);
-                    }
-                }
 
                 switch ($currentValue[0]) {
                     case '"':
@@ -179,6 +172,17 @@ class AnnotationParser
                         return substr($currentValue, 1, -1);
 
                     default:
+                        if (strpos($currentValue, '::') !== false) {
+                            list($class, $constant) = explode('::', $currentValue, 2);
+                            $class        = $this->getFullyQualifiedName($class);
+                            $constantName = $class . '::' . $constant;
+                            if (defined($constantName)) {
+                                return constant($constantName);
+                            } else if (is_callable($constantName)) {
+                                return $constantName;
+                            }
+                        }
+
                         return $this->getFullyQualifiedName($currentValue);
                 }
         }
@@ -186,6 +190,7 @@ class AnnotationParser
 
     /**
      * @param string $closing The closing character
+     *
      * @return array
      */
     private function parseList($closing)
