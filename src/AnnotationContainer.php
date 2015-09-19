@@ -118,7 +118,7 @@ class AnnotationContainer
         if ($parent) {
             $this->reflectors[ $parent->getName() ] = $parent;
 
-            $metadata = $this->readClassMetadata($parent->getName(), true);
+            $metadata = clone $this->readClassMetadata($parent->getName(), true);
         } else {
             $metadata = new AnnotationMetadata;
         }
