@@ -2,6 +2,8 @@
 
 namespace Annotiny;
 
+use Annotiny\Exceptions\AnnotationException;
+
 /**
  * AnnotationReader reads and parses annotations from documentation comments.
  *
@@ -73,7 +75,14 @@ class AnnotationReader extends Reader
      */
     public function readClass($class)
     {
-        return $this->process($this->container->getClassReflector($class), 'class');
+        try {
+            return $this->process($this->container->getClassReflector($class), 'class');
+        } catch (\Exception $e) {
+            if (is_object($class)) {
+                $class = get_class($class);
+            }
+            throw new AnnotationException("An exception has occurred while reading class {$class}", 0, $e);
+        }
     }
 
     /**
@@ -81,7 +90,11 @@ class AnnotationReader extends Reader
      */
     public function readFunction($function)
     {
-        return $this->process(new \ReflectionFunction($function), 'function');
+        try {
+            return $this->process(new \ReflectionFunction($function), 'function');
+        } catch (\Exception $e) {
+            throw new AnnotationException("An exception has occurred while reading function {$function}", 0, $e);
+        }
     }
 
     /**
@@ -89,7 +102,11 @@ class AnnotationReader extends Reader
      */
     public function readMethod($class, $method)
     {
-        return $this->process(new \ReflectionMethod($class, $method), 'method');
+        try {
+            return $this->process(new \ReflectionMethod($class, $method), 'method');
+        } catch (\Exception $e) {
+            throw new AnnotationException("An exception has occurred while reading method {$class}::{$method}", 0, $e);
+        }
     }
 
     /**
@@ -97,7 +114,15 @@ class AnnotationReader extends Reader
      */
     public function readProperty($class, $property)
     {
-        return $this->process(new \ReflectionProperty($class, $property), 'property');
+        try {
+            return $this->process(new \ReflectionProperty($class, $property), 'property');
+        } catch (\Exception $e) {
+            throw new AnnotationException(
+                "An exception has occurred while reading property {$class}::{$property}",
+                0,
+                $e
+            );
+        }
     }
 
     private function getImports($fileName, $startLine)
@@ -140,7 +165,15 @@ class AnnotationReader extends Reader
         $methods        = [];
         $classReflector = $this->container->getClassReflector($class);
         foreach ($classReflector->getMethods($filter) as $method) {
-            $methods[ $method->getName() ] = $this->process($method, 'method');
+            try {
+                $methods[ $method->getName() ] = $this->process($method, 'method');
+            } catch (\Exception $e) {
+                throw new AnnotationException(
+                    "An exception has occurred while reading method {$class}::{$method}",
+                    0,
+                    $e
+                );
+            }
         }
 
         return $methods;
@@ -154,7 +187,15 @@ class AnnotationReader extends Reader
         $properties     = [];
         $classReflector = $this->container->getClassReflector($class);
         foreach ($classReflector->getProperties($filter) as $property) {
-            $properties[ $property->getName() ] = $this->process($property, 'property');
+            try {
+                $properties[ $property->getName() ] = $this->process($property, 'property');
+            } catch (\Exception $e) {
+                throw new AnnotationException(
+                    "An exception has occurred while reading property {$class}::{$property}",
+                    0,
+                    $e
+                );
+            }
         }
 
         return $properties;
