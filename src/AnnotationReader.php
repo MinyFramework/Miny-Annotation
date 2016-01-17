@@ -105,6 +105,9 @@ class AnnotationReader extends Reader
         try {
             return $this->process(new \ReflectionMethod($class, $method), 'method');
         } catch (\Exception $e) {
+            if (is_object($class)) {
+                $class = get_class($class);
+            }
             throw new AnnotationException("An exception has occurred while reading method {$class}::{$method}", 0, $e);
         }
     }
@@ -117,6 +120,9 @@ class AnnotationReader extends Reader
         try {
             return $this->process(new \ReflectionProperty($class, $property), 'property');
         } catch (\Exception $e) {
+            if (is_object($class)) {
+                $class = get_class($class);
+            }
             throw new AnnotationException(
                 "An exception has occurred while reading property {$class}::{$property}",
                 0,
@@ -168,6 +174,9 @@ class AnnotationReader extends Reader
             try {
                 $methods[ $method->getName() ] = $this->process($method, 'method');
             } catch (\Exception $e) {
+                if (is_object($class)) {
+                    $class = get_class($class);
+                }
                 throw new AnnotationException(
                     "An exception has occurred while reading method {$class}::{$method}",
                     0,
@@ -190,6 +199,9 @@ class AnnotationReader extends Reader
             try {
                 $properties[ $property->getName() ] = $this->process($property, 'property');
             } catch (\Exception $e) {
+                if (is_object($class)) {
+                    $class = get_class($class);
+                }
                 throw new AnnotationException(
                     "An exception has occurred while reading property {$class}::{$property}",
                     0,
