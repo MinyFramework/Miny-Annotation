@@ -6,13 +6,11 @@ Annotiny is a small library designed to read and parse documentation comments.
 
 Usage
 --------
-To create the Annotation object a suitable parser and Comment factory must be supplied. These classes are
-separate to make the component extendable.
+To create the AnnotationReader object a suitable parser must be supplied.
 
 ```
-$parser = new \Annotiny\AnnotationParser(new \Modules\Annotation\AnnotationContainer);
-$factory = new \Annotiny\CommentFactory;
-$annotation = new \Annotiny\Annotation($parser, $factory);
+$parser = new \Annotiny\AnnotationParser(new \Annotiny\AnnotationContainer);
+$annotationReader = new \Annotiny\AnnotationReader($parser, $factory);
 ```
 
 Annotation has four public methods: `readClass($class)`, `readFunction($function)`, `readMethod($class, $method)` and `readProperty($class, $property)`. These functions work as one would expect, e.g. `readMethod` reads and parses the documentation comment of a class or object method.

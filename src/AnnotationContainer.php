@@ -3,6 +3,7 @@
 namespace Annotiny;
 
 use Annotiny\Annotations\Attribute;
+use Annotiny\Annotations\Enum;
 use Annotiny\Annotations\Target;
 use Annotiny\Exceptions\AnnotationException;
 
@@ -28,71 +29,26 @@ class AnnotationContainer
         $this->reader = $reader;
 
         $this->annotations = [
-            __NAMESPACE__ . '\Annotations\Attribute' => AnnotationMetadata::create(
-                [
-                    'defaultAttribute' => 'name',
-                    'attributes'       => [
-                        'name'     => [
-                            'required' => true,
-                            'type'     => 'string'
-                        ],
-                        'setter'   => [
-                            'required' => false,
-                            'type'     => 'string'
-                        ],
-                        'type'     => [
-                            'required' => false,
-                            'type'     => 'mixed'
-                        ],
-                        'nullable' => [
-                            'required' => false,
-                            'type'     => 'bool'
-                        ],
-                        'required' => [
-                            'required' => false,
-                            'type'     => 'bool'
-                        ],
-                        'default'  => [
-                            'required' => false,
-                            'type'     => 'mixed'
-                        ]
-                    ],
-                    'target'           => Target::TARGET_CLASS
-                ]
-            ),
-            __NAMESPACE__ . '\Annotations\Enum'      => AnnotationMetadata::create(
-                [
-                    'defaultAttribute' => 'values',
-                    'attributes'       => [
-                        'values' => [
-                            'required' => true,
-                            'type'     => []
-                        ]
-                    ],
-                    'target'           => Target::TARGET_ANNOTATION
-                ]
-            ),
-            __NAMESPACE__ . '\Annotations\Target'    => AnnotationMetadata::create(
-                [
-                    'defaultAttribute' => 'target',
-                    'constructor'      => [
-                        'target'
-                    ],
-                    'attributes'       => [
-                        'target' => [
-                            'required' => true,
-                            'type'     => 'mixed'
-                        ]
-                    ],
-                    'target'           => Target::TARGET_CLASS
-                ]
-            )
+            Attribute::class => (new AnnotationMetadata('name'))
+                ->addAttribute('name', new Attribute(['required' => true, 'type' => 'string']))
+                ->addAttribute('setter', new Attribute(['required' => false, 'type' => 'string']))
+                ->addAttribute('type', new Attribute(['required' => false, 'type' => 'mixed']))
+                ->addAttribute('nullable', new Attribute(['required' => false, 'type' => 'bool']))
+                ->addAttribute('required', new Attribute(['required' => false, 'type' => 'bool']))
+                ->addAttribute('default', new Attribute(['required' => false, 'type' => 'mixed'])),
+            Enum::class      => (new AnnotationMetadata('values', Target::TARGET_ANNOTATION))
+                ->addAttribute('values', new Attribute(['required' => true, 'type' => []])),
+            Target::class    => (new AnnotationMetadata('target', Target::TARGET_CLASS, ['target']))
+                ->addAttribute('target', new Attribute(['required' => true, 'type' => 'mixed']))
         ];
     }
 
     public function registerAnnotation($class, array $metadata)
     {
-        $this->annotations[ $class ] = AnnotationMetadata::create($metadata);
+        $annotationMetadata          = new AnnotationMetadata($metadata);
+        $this->annotations[ $class ] = $annotationMetadata;
+
+        return $annotationMetadata;
     }
 
     /**
@@ -160,44 +116,41 @@ class AnnotationContainer
     }
 
     /**
-     * @param Comment            $comment
+     * @param Comment $comment
      * @param AnnotationMetadata $metadata
      */
     private function collectAttributeMetadata(Comment $comment, AnnotationMetadata $metadata)
     {
         //@Attribute annotations
-        $attributeClassName = __NAMESPACE__ . '\Annotations\Attribute';
-        if (!$comment->hasAnnotationType($attributeClassName)) {
-            return;
-        }
-        foreach ($comment->getAnnotationType($attributeClassName) as $annotation) {
-            /** @var $annotation Attribute */
-            $metadata->attributes[ $annotation->name ] = $annotation->toArray();
+        $attributeClassName = Attribute::class;
+        if ($comment->hasAnnotationType($attributeClassName)) {
+            foreach ($comment->getAnnotationType($attributeClassName) as $annotation) {
+                /** @var $annotation Attribute */
+                $metadata->attributes[ $annotation->name ] = $annotation;
+            }
         }
     }
 
     /**
-     * @param Comment            $comment
+     * @param Comment $comment
      * @param AnnotationMetadata $metadata
      */
     private function collectTargetMetadata(Comment $comment, AnnotationMetadata $metadata)
     {
         //@Target
-        $targetClassName = __NAMESPACE__ . '\Annotations\Target';
-        if (!$comment->hasAnnotationType($targetClassName)) {
-            return;
+        $targetClassName = Target::class;
+        if ($comment->hasAnnotationType($targetClassName)) {
+            $metadata->target = array_reduce(
+                $comment->getAnnotationType($targetClassName),
+                function ($value, Target $target) {
+                    return $value | $target->target;
+                }
+            );
         }
-
-        $metadata->target = array_reduce(
-            $comment->getAnnotationType($targetClassName),
-            function ($value, Target $target) {
-                return $value | $target->target;
-            }
-        );
     }
 
     /**
-     * @param Comment            $comment
+     * @param Comment $comment
      * @param AnnotationMetadata $metadata
      */
     private function collectDefaultAttributeMetadata(Comment $comment, AnnotationMetadata $metadata)
@@ -209,7 +162,7 @@ class AnnotationContainer
     }
 
     /**
-     * @param \ReflectionClass   $reflector
+     * @param \ReflectionClass $reflector
      * @param AnnotationMetadata $metadata
      */
     private function getConstructorInfo(\ReflectionClass $reflector, AnnotationMetadata $metadata)
@@ -223,26 +176,26 @@ class AnnotationContainer
         foreach ($constructor->getParameters() as $parameter) {
             $name = $parameter->getName();
             if (!isset($metadata->attributes[ $name ])) {
-                $metadata->attributes[ $name ] = Attribute::getDefaults();
+                $metadata->addAttribute($name, new Attribute());
             }
 
             $metadata->constructor[] = $name;
-            if ($metadata->attributes[ $name ]['default'] === null) {
+            if ($metadata->attributes[ $name ]->default === null) {
                 if ($parameter->isDefaultValueAvailable()) {
-                    $metadata->attributes[ $name ]['default']  = $parameter->getDefaultValue();
-                    $metadata->attributes[ $name ]['required'] = false;
+                    $metadata->attributes[ $name ]->default  = $parameter->getDefaultValue();
+                    $metadata->attributes[ $name ]->required = false;
                 } else if (!$parameter->allowsNull()) {
-                    $metadata->attributes[ $name ]['required'] = true;
+                    $metadata->attributes[ $name ]->required = true;
                 }
             } else {
-                $metadata->attributes[ $name ]['required'] = false;
+                $metadata->attributes[ $name ]->required = false;
             }
         }
     }
 
     /**
      * @param string $class The fully qualified class name
-     * @param array  $attributes
+     * @param array $attributes
      * @param        $target
      *
      * @throws AnnotationException
@@ -262,7 +215,7 @@ class AnnotationContainer
 
     /**
      * @param                    $class
-     * @param array              $attributes
+     * @param array $attributes
      * @param AnnotationMetadata $metadata
      *
      * @throws AnnotationException
@@ -277,7 +230,7 @@ class AnnotationContainer
             //$metadata->constructor has the constructor parameter names in order
             foreach ($metadata->constructor as $i => $key) {
                 if (!isset($attributes[ $key ])) {
-                    $arguments[ $key ] = $metadata->attributes[ $key ]['default'];
+                    $arguments[ $key ] = $metadata->attributes[ $key ]->default;
                 } else {
                     $arguments[ $key ] = $attributes[ $key ];
                     unset($attributes[ $key ]);
@@ -289,8 +242,8 @@ class AnnotationContainer
         }
 
         foreach ($attributes as $key => $value) {
-            if (isset($metadata->attributes[ $key ]['setter'])) {
-                $annotation->{$metadata->attributes[ $key ]['setter']}($value);
+            if (isset($metadata->attributes[ $key ]->setter)) {
+                $annotation->{$metadata->attributes[ $key ]->setter}($value);
             } else {
                 $annotation->$key = $value;
             }
@@ -301,7 +254,7 @@ class AnnotationContainer
 
     /**
      * @param AnnotationMetadata $metadata
-     * @param array              $attributes
+     * @param array $attributes
      *
      * @return array
      *
@@ -319,15 +272,16 @@ class AnnotationContainer
             if (!isset($metadata->attributes[ $name ])) {
                 throw new AnnotationException("Unknown attribute: {$name}");
             }
-            if ($value === null && $metadata->attributes[ $name ]['nullable']) {
+            if ($value === null && $metadata->attributes[ $name ]->nullable) {
                 continue;
             }
-            Attribute::checkType($name, $value, $metadata->attributes[ $name ]['type']);
+            Attribute::checkType($name, $value, $metadata->attributes[ $name ]->type);
         }
 
+        /** @var Attribute $unsetAttributes */
         $unsetAttributes = array_diff_key($metadata->attributes, $attributes);
         foreach ($unsetAttributes as $name => $data) {
-            if ($data['required']) {
+            if ($data->required) {
                 throw new AnnotationException("Required parameter {$name} is not set");
             }
         }

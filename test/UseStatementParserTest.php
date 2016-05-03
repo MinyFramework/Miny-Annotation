@@ -1,6 +1,8 @@
 <?php
 
-namespace Annotiny;
+namespace Annotiny\Test;
+
+use Annotiny\UseStatementParser;
 
 class UseStatementParserTest extends \PHPUnit_Framework_TestCase
 {

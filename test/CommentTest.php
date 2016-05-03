@@ -1,6 +1,8 @@
 <?php
 
-namespace Annotiny;
+namespace Annotiny\Test;
+
+use Annotiny\Comment;
 
 class CommentTest extends \PHPUnit_Framework_TestCase
 {

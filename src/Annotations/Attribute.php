@@ -87,34 +87,17 @@ class Attribute
         }
     }
 
-    private static $defaults = [
-        'required' => false,
-        'type'     => 'mixed',
-        'setter'   => null,
-        'nullable' => false,
-        'default'  => null
-    ];
-
-    public static function getDefaults()
-    {
-        return static::$defaults;
-    }
-
     public $name;
-    public $type     = 'mixed';
+    public $type = 'mixed';
     public $setter;
     public $nullable = false;
     public $required = false;
     public $default;
 
-    public function toArray()
+    public function __construct(array $values = [])
     {
-        return [
-            'required' => $this->required,
-            'type'     => $this->type,
-            'setter'   => $this->setter,
-            'nullable' => $this->nullable,
-            'default'  => $this->default
-        ];
+        foreach ($values as $k => $v) {
+            $this->$k = $v;
+        }
     }
 }

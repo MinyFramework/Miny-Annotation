@@ -2,22 +2,31 @@
 
 namespace Annotiny;
 
+use Annotiny\Annotations\Attribute;
 use Annotiny\Annotations\Target;
 
 class AnnotationMetadata
 {
-    public $constructor = false;
-    public $target      = Target::TARGET_CLASS;
+    public $constructor;
+    public $target;
     public $defaultAttribute;
-    public $attributes  = [];
 
-    public static function create(array $properties)
+    /**
+     * @var Attribute[]
+     */
+    public $attributes = [];
+
+    public function __construct($defaultAttribute = null, $target = Target::TARGET_CLASS, $constructor = false)
     {
-        $object = new AnnotationMetadata;
-        foreach ($properties as $property => $value) {
-            $object->$property = $value;
-        }
+        $this->defaultAttribute = $defaultAttribute;
+        $this->target           = $target;
+        $this->constructor      = $constructor;
+    }
 
-        return $object;
+    public function addAttribute($name, Attribute $attribute)
+    {
+        $this->attributes[ $name ] = $attribute;
+
+        return $this;
     }
 }

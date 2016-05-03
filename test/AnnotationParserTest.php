@@ -1,6 +1,9 @@
 <?php
 
-namespace Annotiny;
+namespace Annotiny\Test;
+
+use Annotiny\AnnotationContainer;
+use Annotiny\AnnotationParser;
 
 class AnnotationParserTest extends \PHPUnit_Framework_TestCase
 {
@@ -12,7 +15,7 @@ class AnnotationParserTest extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
         $this->object = new AnnotationParser(
-            $this->getMockBuilder(__NAMESPACE__ . '\AnnotationContainer')
+            $this->getMockBuilder(AnnotationContainer::class)
                  ->disableOriginalConstructor()
                  ->getMock()
         );
