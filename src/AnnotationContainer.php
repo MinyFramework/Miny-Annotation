@@ -72,9 +72,11 @@ class AnnotationContainer
     {
         $parent = $reflector->getParentClass();
         if ($parent) {
-            $this->reflectors[ $parent->getName() ] = $parent;
+            $parentClassName = $parent->getName();
 
-            $metadata = clone $this->readClassMetadata($parent->getName(), true);
+            $this->reflectors[ $parentClassName ] = $parent;
+
+            $metadata = clone $this->readClassMetadata($parentClassName, true);
         } else {
             $metadata = new AnnotationMetadata;
         }
@@ -256,7 +258,7 @@ class AnnotationContainer
      * @param AnnotationMetadata $metadata
      * @param array $attributes
      *
-     * @return array
+     * @return Attribute[]
      *
      * @throws AnnotationException
      */
@@ -268,24 +270,37 @@ class AnnotationContainer
                 $attributes[ $metadata->defaultAttribute ] = $value;
             }
         }
+        $unsetRequiredAttributes = $metadata->attributes;
         foreach ($attributes as $name => $value) {
             if (!isset($metadata->attributes[ $name ])) {
                 throw new AnnotationException("Unknown attribute: {$name}");
             }
-            if ($value === null && $metadata->attributes[ $name ]->nullable) {
-                continue;
-            }
-            Attribute::checkType($name, $value, $metadata->attributes[ $name ]->type);
-        }
-
-        /** @var Attribute $unsetAttributes */
-        $unsetAttributes = array_diff_key($metadata->attributes, $attributes);
-        foreach ($unsetAttributes as $name => $data) {
-            if ($data->required) {
-                throw new AnnotationException("Required parameter {$name} is not set");
+            unset($unsetRequiredAttributes[ $name ]);
+            $attribute = $metadata->attributes[ $name ];
+            if (!($value === null && $attribute->nullable)) {
+                Attribute::checkType($name, $value, $attribute->type);
             }
         }
 
-        return $attributes;
+        //Filter for required attributes
+        $unsetRequiredAttributes = array_filter($unsetRequiredAttributes, function (Attribute $attribute) {
+            return $attribute->required;
+        });
+
+        if (empty($unsetRequiredAttributes)) {
+            return $attributes;
+        }
+
+        //get attribute names
+        $unsetRequiredAttributeNames = array_map(function (Attribute $attribute) {
+            return $attribute->name;
+        }, $unsetRequiredAttributes);
+
+        if (count($unsetRequiredAttributes) === 1) {
+            throw new AnnotationException("Required parameter {$unsetRequiredAttributeNames[0]} is not set");
+        } else {
+            $joined = implode(', ', $unsetRequiredAttributeNames);
+            throw new AnnotationException("Required parameters {$joined} are not set");
+        }
     }
 }

@@ -2,12 +2,16 @@
 
 namespace Annotiny;
 
+use Annotiny\Annotations\Attribute;
+use Annotiny\Annotations\Enum;
+use Annotiny\Annotations\Target;
+
 abstract class Reader
 {
     private $globalImports = [
-        'Attribute' => 'Annotiny\Annotations\Attribute',
-        'Enum'      => 'Annotiny\Annotations\Enum',
-        'Target'    => 'Annotiny\Annotations\Target'
+        'Attribute' => Attribute::class,
+        'Enum'      => Enum::class,
+        'Target'    => Target::class
     ];
 
     /**
@@ -36,7 +40,7 @@ abstract class Reader
      * Reads and parses documentation comments from methods.
      *
      * @param string|object $class
-     * @param string        $method
+     * @param string $method
      * @return Comment
      */
     abstract public function readMethod($class, $method);
@@ -45,7 +49,7 @@ abstract class Reader
      * Reads and parses documentation comments from properties.
      *
      * @param string|object $class
-     * @param string        $property
+     * @param string $property
      * @return Comment
      */
     abstract public function readProperty($class, $property);
@@ -54,7 +58,7 @@ abstract class Reader
      * Reads and parses documentation comments from methods.
      *
      * @param string|object $class
-     * @param int           $filter
+     * @param int $filter
      *
      * @return Comment[]
      */
@@ -64,7 +68,7 @@ abstract class Reader
      * Reads and parses documentation comments from properties.
      *
      * @param string|object $class
-     * @param int           $filter
+     * @param int $filter
      *
      * @return Comment[]
      */

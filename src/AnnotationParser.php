@@ -112,11 +112,11 @@ class AnnotationParser
                 $part = $this->parts[ $this->position ];
                 if ($part === '{') {
                     $parameters = $this->parseList('}');
-                } elseif (is_string($parameters)) {
+                } else if (is_string($parameters)) {
                     if (strstr($part, "\n")) {
                         --$this->position;
                         break;
-                    } elseif ($part === '@') {
+                    } else if ($part === '@') {
                         --$this->position;
                         break;
                     } else {
@@ -209,7 +209,7 @@ class AnnotationParser
 
                 case ',':
                     if (!isset($currentValue)) {
-                        throw new SyntaxException('Unexpected = found.');
+                        throw new SyntaxException('Unexpected , found.');
                     }
                     $currentValue = $this->getValue($currentValue);
                     if (isset($currentKey)) {
@@ -299,7 +299,7 @@ class AnnotationParser
             //determine if class is aliased directly
             $class = $this->imports[ $class ];
 
-        } elseif (($nsDelimiter = strpos($class, '\\')) !== false) {
+        } else if (($nsDelimiter = strpos($class, '\\')) !== false) {
             //if not, determine if class is part of one of the imported namespaces
             $namespace = substr($class, 0, $nsDelimiter);
             if (!isset($this->imports[ $namespace ])) {
